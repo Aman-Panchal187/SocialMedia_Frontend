@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import Modal from '../../../components/common/Modal'
 import Button from '../../../components/common/Button'
-import HashtagInput from './HashtagInput'
 import { postsApi } from '../../../api/postsApi'
 import { aiApi } from '../../../api/aiApi'
 
@@ -13,7 +12,6 @@ const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4']
 export default function CreatePostModal({ isOpen, onClose }) {
   const [files, setFiles] = useState([])
   const [caption, setCaption] = useState('')
-  const [hashtags, setHashtags] = useState([])
   const [suggestion, setSuggestion] = useState(null)
   const queryClient = useQueryClient()
 
@@ -40,7 +38,6 @@ export default function CreatePostModal({ isOpen, onClose }) {
   const handleClose = () => {
     setFiles([])
     setCaption('')
-    setHashtags([])
     setSuggestion(null)
     onClose()
   }
@@ -70,7 +67,7 @@ export default function CreatePostModal({ isOpen, onClose }) {
       toast.error('Please select at least one photo or video')
       return
     }
-    createMutation.mutate({ media: files, caption, hashtags })
+    createMutation.mutate({ media: files, caption })
   }
 
   return (
@@ -153,8 +150,6 @@ export default function CreatePostModal({ isOpen, onClose }) {
           rows={3}
           className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-brand dark:border-gray-700"
         />
-
-        <HashtagInput hashtags={hashtags} onChange={setHashtags} />
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={handleClose}>
