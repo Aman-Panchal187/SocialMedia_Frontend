@@ -2,31 +2,34 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
 import { postsApi } from '../../../api/postsApi'
+import { HeartIcon } from '../../../components/common/icons'
+import { patchPostInCache } from '../postCacheUtils'
 
-export default function LikeButton({ postId, isLiked, likeCount, feedQueryKey }) {
+export default function LikeButton({ postId, isLiked, likeCount, feedQueryKey, postQueryKey }) {
   const queryClient = useQueryClient()
+  const queryKeys = [feedQueryKey, postQueryKey].filter(Boolean)
 
   const mutation = useMutation({
     mutationFn: (nextLiked) => (nextLiked ? postsApi.likePost(postId) : postsApi.unlikePost(postId)),
     onMutate: async (nextLiked) => {
-      if (!feedQueryKey) return
-      await queryClient.cancelQueries({ queryKey: feedQueryKey })
-      const previous = queryClient.getQueryData(feedQueryKey)
+      if (queryKeys.length === 0) return
 
-      queryClient.setQueryData(feedQueryKey, (old) => updatePostInCache(old, postId, nextLiked))
+      await Promise.all(queryKeys.map((key) => queryClient.cancelQueries({ queryKey: key })))
+      const previousByKey = queryKeys.map((key) => [key, queryClient.getQueryData(key)])
 
-      return { previous }
+      const patch = (post) => ({ isLiked: nextLiked, likeCount: post.likeCount + (nextLiked ? 1 : -1) })
+      for (const key of queryKeys) {
+        queryClient.setQueryData(key, (old) => patchPostInCache(old, postId, patch))
+      }
+
+      return { previousByKey }
     },
     onError: (_err, _nextLiked, context) => {
-      if (feedQueryKey && context?.previous) {
-        queryClient.setQueryData(feedQueryKey, context.previous)
-      }
+      context?.previousByKey?.forEach(([key, data]) => queryClient.setQueryData(key, data))
       toast.error('Something went wrong, please try again')
     },
     onSettled: () => {
-      if (feedQueryKey) {
-        queryClient.invalidateQueries({ queryKey: feedQueryKey })
-      }
+      queryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }))
     },
   })
 
@@ -40,41 +43,18 @@ export default function LikeButton({ postId, isLiked, likeCount, feedQueryKey })
       onClick={handleClick}
       disabled={mutation.isPending}
       aria-label={isLiked ? 'Unlike' : 'Like'}
-      className="flex items-center gap-1 text-2xl"
+      className="flex items-center gap-1.5"
     >
       <motion.span
         key={isLiked ? 'liked' : 'unliked'}
         initial={isLiked ? { scale: 1 } : false}
         animate={isLiked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
         transition={{ duration: 0.3 }}
-        className={isLiked ? 'text-danger' : 'text-current'}
+        className={isLiked ? 'text-danger' : 'text-gray-900 dark:text-gray-100'}
       >
-        {isLiked ? '❤️' : '🤍'}
+        <HeartIcon filled={isLiked} />
       </motion.span>
       <span className="text-sm font-medium">{likeCount}</span>
     </button>
   )
-}
-
-function updatePostInCache(old, postId, nextLiked) {
-  if (!old) return old
-  if (!old.pages) {
-    if (old.id !== postId) return old
-    return {
-      ...old,
-      isLiked: nextLiked,
-      likeCount: old.likeCount + (nextLiked ? 1 : -1),
-    }
-  }
-  return {
-    ...old,
-    pages: old.pages.map((page) => ({
-      ...page,
-      items: page.items.map((post) =>
-        post.id === postId
-          ? { ...post, isLiked: nextLiked, likeCount: post.likeCount + (nextLiked ? 1 : -1) }
-          : post
-      ),
-    })),
-  }
 }

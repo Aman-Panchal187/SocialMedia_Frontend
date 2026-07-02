@@ -1,31 +1,36 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
+import clsx from 'clsx'
 import { postsApi } from '../../../api/postsApi'
+import { BookmarkIcon } from '../../../components/common/icons'
+import { patchPostInCache } from '../postCacheUtils'
 
-export default function SaveButton({ postId, isSaved, feedQueryKey }) {
+export default function SaveButton({ postId, isSaved, feedQueryKey, postQueryKey, className }) {
   const queryClient = useQueryClient()
+  const queryKeys = [feedQueryKey, postQueryKey].filter(Boolean)
 
   const mutation = useMutation({
     mutationFn: (nextSaved) => (nextSaved ? postsApi.savePost(postId) : postsApi.unsavePost(postId)),
     onMutate: async (nextSaved) => {
-      if (!feedQueryKey) return
-      await queryClient.cancelQueries({ queryKey: feedQueryKey })
-      const previous = queryClient.getQueryData(feedQueryKey)
+      if (queryKeys.length === 0) return
 
-      queryClient.setQueryData(feedQueryKey, (old) => updateSavedInCache(old, postId, nextSaved))
+      await Promise.all(queryKeys.map((key) => queryClient.cancelQueries({ queryKey: key })))
+      const previousByKey = queryKeys.map((key) => [key, queryClient.getQueryData(key)])
 
-      return { previous }
+      for (const key of queryKeys) {
+        queryClient.setQueryData(key, (old) =>
+          patchPostInCache(old, postId, () => ({ isSaved: nextSaved }))
+        )
+      }
+
+      return { previousByKey }
     },
     onError: (_err, _nextSaved, context) => {
-      if (feedQueryKey && context?.previous) {
-        queryClient.setQueryData(feedQueryKey, context.previous)
-      }
+      context?.previousByKey?.forEach(([key, data]) => queryClient.setQueryData(key, data))
       toast.error('Failed to update saved post')
     },
     onSettled: () => {
-      if (feedQueryKey) {
-        queryClient.invalidateQueries({ queryKey: feedQueryKey })
-      }
+      queryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }))
     },
   })
 
@@ -35,24 +40,9 @@ export default function SaveButton({ postId, isSaved, feedQueryKey }) {
       onClick={() => mutation.mutate(!isSaved)}
       disabled={mutation.isPending}
       aria-label={isSaved ? 'Unsave' : 'Save'}
-      className="text-2xl"
+      className={clsx('text-gray-900 dark:text-gray-100', className)}
     >
-      {isSaved ? '🔖' : '📑'}
+      <BookmarkIcon filled={isSaved} />
     </button>
   )
-}
-
-function updateSavedInCache(old, postId, nextSaved) {
-  if (!old) return old
-  if (!old.pages) {
-    if (old.id !== postId) return old
-    return { ...old, isSaved: nextSaved }
-  }
-  return {
-    ...old,
-    pages: old.pages.map((page) => ({
-      ...page,
-      items: page.items.map((post) => (post.id === postId ? { ...post, isSaved: nextSaved } : post)),
-    })),
-  }
 }

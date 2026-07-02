@@ -1,10 +1,14 @@
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import Skeleton from 'react-loading-skeleton'
+import { formatDistanceToNowStrict } from 'date-fns'
 import Modal from '../../../components/common/Modal'
 import Avatar from '../../../components/common/Avatar'
+import { CloseIcon } from '../../../components/common/icons'
 import LikeButton from './LikeButton'
 import SaveButton from './SaveButton'
 import CommentSection from './CommentSection'
+import CommentComposer from './CommentComposer'
 import { postsApi } from '../../../api/postsApi'
 
 export default function PostDetailModal({ postId, isOpen, onClose }) {
@@ -18,7 +22,12 @@ export default function PostDetailModal({ postId, isOpen, onClose }) {
   const post = postQuery.data
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabel="Post"
+      className="overflow-hidden p-0 sm:max-w-4xl"
+    >
       {postQuery.isLoading && (
         <div className="flex flex-col gap-3 p-6 sm:flex-row">
           <Skeleton height={320} containerClassName="flex-1" />
@@ -31,33 +40,67 @@ export default function PostDetailModal({ postId, isOpen, onClose }) {
           </div>
         </div>
       )}
+
       {post && (
-        <div className="flex flex-col sm:flex-row">
-          <div className="flex-1 bg-black">
+        <div className="flex h-[85vh] max-h-[640px] flex-col bg-white dark:bg-gray-900 sm:flex-row">
+          <div className="flex min-h-[220px] flex-1 items-center justify-center bg-black">
             <img
               src={post.media?.[0]?.mediaUrl}
               alt={post.caption || 'Post media'}
-              className="max-h-[70vh] w-full object-contain"
+              className="max-h-full max-w-full object-contain"
             />
           </div>
-          <div className="flex w-full flex-col sm:w-80">
-            <div className="flex items-center gap-2 border-b border-gray-200 p-3 dark:border-gray-800">
-              <Avatar src={post.author?.avatarUrl} alt={post.author?.username} size="sm" />
-              <span className="text-sm font-semibold">{post.author?.username}</span>
+
+          <div className="flex w-full min-h-0 flex-col sm:w-[360px] sm:shrink-0 sm:border-l sm:border-gray-200 sm:dark:border-gray-800">
+            <div className="flex shrink-0 items-center justify-between gap-2 border-b border-gray-200 p-3 dark:border-gray-800">
+              <Link to={`/${post.author?.username}`} className="flex items-center gap-2">
+                <Avatar src={post.author?.avatarUrl} alt={post.author?.username} size="sm" />
+                <span className="text-sm font-semibold">{post.author?.username}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+              >
+                <CloseIcon />
+              </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-3">
+
+            <div className="min-h-0 flex-1 overflow-y-auto p-3">
               {post.caption && (
-                <p className="mb-2 text-sm">
-                  <span className="mr-1 font-semibold">{post.author?.username}</span>
-                  {post.caption}
-                </p>
+                <div className="mb-3 flex gap-3">
+                  <Avatar src={post.author?.avatarUrl} alt={post.author?.username} size="xs" className="shrink-0" />
+                  <p className="text-sm">
+                    <span className="mr-1 font-semibold">{post.author?.username}</span>
+                    {post.caption}
+                  </p>
+                </div>
               )}
               <CommentSection postId={post.id} />
             </div>
-            <div className="flex items-center gap-3 border-t border-gray-200 p-3 dark:border-gray-800">
-              <LikeButton postId={post.id} isLiked={post.isLiked} likeCount={post.likeCount} />
-              <SaveButton postId={post.id} isSaved={post.isSaved} />
+
+            <div className="shrink-0 border-t border-gray-200 p-3 dark:border-gray-800">
+              <div className="flex items-center gap-4">
+                <LikeButton
+                  postId={post.id}
+                  isLiked={post.isLiked}
+                  likeCount={post.likeCount}
+                  postQueryKey={['post', post.id]}
+                />
+                <SaveButton
+                  postId={post.id}
+                  isSaved={post.isSaved}
+                  postQueryKey={['post', post.id]}
+                  className="ml-auto"
+                />
+              </div>
+              <p className="mt-2 text-xs uppercase text-gray-400">
+                {formatDistanceToNowStrict(new Date(post.createdAt))} ago
+              </p>
             </div>
+
+            <CommentComposer postId={post.id} />
           </div>
         </div>
       )}

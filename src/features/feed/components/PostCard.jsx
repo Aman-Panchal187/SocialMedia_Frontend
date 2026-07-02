@@ -35,7 +35,12 @@ export default function PostCard({ post, feedQueryKey }) {
           likeCount={post.likeCount}
           feedQueryKey={feedQueryKey}
         />
-        <SaveButton postId={post.id} isSaved={post.isSaved} feedQueryKey={feedQueryKey} />
+        <SaveButton
+          postId={post.id}
+          isSaved={post.isSaved}
+          feedQueryKey={feedQueryKey}
+          className="ml-auto"
+        />
       </div>
 
       {post.caption && (
