@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #fafafa;
+  --color-border: #dbdbdb;
+  --color-text: #262626;
+  --color-text-secondary: #8e8e8e;
+}
+
+.dark {
+  --color-bg: #000000;
+  --color-surface: #121212;
+  --color-border: #262626;
+  --color-text: #fafafa;
+  --color-text-secondary: #a8a8a8;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+* {
+  box-sizing: border-box;
+}
