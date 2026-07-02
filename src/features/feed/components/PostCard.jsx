@@ -20,13 +20,22 @@ export default function PostCard({ post, feedQueryKey }) {
         </Link>
       </div>
 
-      <button type="button" onClick={() => setIsDetailOpen(true)} className="block w-full">
-        <img
+      {post.media?.[0]?.mediaType === 'video' ? (
+        <video
           src={post.media?.[0]?.mediaUrl}
-          alt={post.caption || 'Post media'}
-          className="max-h-[600px] w-full object-cover"
+          controls
+          playsInline
+          className="max-h-[600px] w-full bg-black object-contain"
         />
-      </button>
+      ) : (
+        <button type="button" onClick={() => setIsDetailOpen(true)} className="block w-full">
+          <img
+            src={post.media?.[0]?.mediaUrl}
+            alt={post.caption || 'Post media'}
+            className="max-h-[600px] w-full object-cover"
+          />
+        </button>
+      )}
 
       <div className="flex items-center gap-3 p-3">
         <LikeButton

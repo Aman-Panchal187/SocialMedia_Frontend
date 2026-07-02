@@ -42,11 +42,29 @@ export default function PostGrid({ username }) {
             onClick={() => setActivePostId(post.id)}
             className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800"
           >
-            <img
-              src={post.media?.[0]?.mediaUrl}
-              alt={post.caption || 'Post'}
-              className="h-full w-full object-cover"
-            />
+            {post.media?.[0]?.mediaType === 'video' ? (
+              <div className="relative h-full w-full">
+                <video
+                  src={post.media?.[0]?.mediaUrl}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full object-cover"
+                />
+                <span
+                  className="absolute right-1 top-1 text-lg text-white drop-shadow"
+                  aria-hidden="true"
+                >
+                  ▶
+                </span>
+              </div>
+            ) : (
+              <img
+                src={post.media?.[0]?.mediaUrl}
+                alt={post.caption || 'Post'}
+                className="h-full w-full object-cover"
+              />
+            )}
           </button>
         ))}
       </div>

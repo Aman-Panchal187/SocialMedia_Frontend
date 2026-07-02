@@ -44,11 +44,20 @@ export default function PostDetailModal({ postId, isOpen, onClose }) {
       {post && (
         <div className="flex h-[85vh] max-h-[640px] flex-col bg-white dark:bg-gray-900 sm:flex-row">
           <div className="flex min-h-[220px] flex-1 items-center justify-center bg-black">
-            <img
-              src={post.media?.[0]?.mediaUrl}
-              alt={post.caption || 'Post media'}
-              className="max-h-full max-w-full object-contain"
-            />
+            {post.media?.[0]?.mediaType === 'video' ? (
+              <video
+                src={post.media?.[0]?.mediaUrl}
+                controls
+                playsInline
+                className="max-h-full max-w-full object-contain"
+              />
+            ) : (
+              <img
+                src={post.media?.[0]?.mediaUrl}
+                alt={post.caption || 'Post media'}
+                className="max-h-full max-w-full object-contain"
+              />
+            )}
           </div>
 
           <div className="flex w-full min-h-0 flex-col sm:w-[360px] sm:shrink-0 sm:border-l sm:border-gray-200 sm:dark:border-gray-800">

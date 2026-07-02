@@ -1,18 +1,20 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import Modal from '../../../components/common/Modal'
 import Button from '../../../components/common/Button'
+import { CloseIcon } from '../../../components/common/icons'
 import { postsApi } from '../../../api/postsApi'
 import { aiApi } from '../../../api/aiApi'
 
-const MAX_FILES = 10
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4']
 
 export default function CreatePostModal({ isOpen, onClose }) {
-  const [files, setFiles] = useState([])
+  const [file, setFile] = useState(null)
   const [caption, setCaption] = useState('')
   const [suggestion, setSuggestion] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = useRef(null)
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
@@ -33,125 +35,181 @@ export default function CreatePostModal({ isOpen, onClose }) {
     onError: () => setSuggestion(null),
   })
 
-  const isAllImages = files.length > 0 && files.every((file) => file.type.startsWith('image/'))
+  const isImage = file?.type.startsWith('image/')
 
   const handleClose = () => {
-    setFiles([])
+    setFile(null)
     setCaption('')
     setSuggestion(null)
+    setIsDragging(false)
     onClose()
   }
 
+  const setSingleFile = (incoming) => {
+    if (!incoming) return
+
+    if (!ACCEPTED_TYPES.includes(incoming.type)) {
+      toast.error(`Unsupported file type: ${incoming.name}`)
+      return
+    }
+
+    setFile(incoming)
+    setSuggestion(null)
+  }
+
   const handleFileChange = (e) => {
-    const selected = Array.from(e.target.files || [])
-    if (selected.length === 0) return
+    setSingleFile(e.target.files?.[0])
+    e.target.value = ''
+  }
 
-    if (selected.length > MAX_FILES) {
-      toast.error(`You can upload up to ${MAX_FILES} files`)
-      return
-    }
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+    setSingleFile(e.dataTransfer.files?.[0])
+  }
 
-    const invalid = selected.find((file) => !ACCEPTED_TYPES.includes(file.type))
-    if (invalid) {
-      toast.error(`Unsupported file type: ${invalid.name}`)
-      return
-    }
-
-    setFiles(selected)
+  const removeFile = () => {
+    setFile(null)
     setSuggestion(null)
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (files.length === 0) {
-      toast.error('Please select at least one photo or video')
+    if (!file) {
+      toast.error('Please select a photo or video')
       return
     }
-    createMutation.mutate({ media: files, caption })
+    createMutation.mutate({ media: [file], caption })
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-5">
-        <h2 className="text-lg font-semibold">Create new post</h2>
+    <Modal isOpen={isOpen} onClose={handleClose} className="overflow-hidden p-0 sm:max-w-xl">
+      <form onSubmit={handleSubmit} className="flex max-h-[85vh] flex-col">
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
+          <h2 className="text-lg font-semibold">Create new post</h2>
+          <button
+            type="button"
+            onClick={handleClose}
+            aria-label="Close"
+            className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+          >
+            <CloseIcon />
+          </button>
+        </div>
 
-        <label htmlFor="create-post-file" className="sr-only">
-          Select photos or videos
-        </label>
-        <input
-          id="create-post-file"
-          type="file"
-          accept={ACCEPTED_TYPES.join(',')}
-          multiple
-          onChange={handleFileChange}
-        />
+        <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
+          <label htmlFor="create-post-file" className="sr-only">
+            Select a photo or video
+          </label>
+          <input
+            ref={fileInputRef}
+            id="create-post-file"
+            type="file"
+            accept={ACCEPTED_TYPES.join(',')}
+            onChange={handleFileChange}
+            className="hidden"
+          />
 
-        {files.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-            {files.map((file, index) => (
-              <img
-                key={index}
-                src={URL.createObjectURL(file)}
-                alt={`preview-${index}`}
-                className="h-20 w-full rounded object-cover"
-              />
-            ))}
-          </div>
-        )}
+          {!file ? (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault()
+                setIsDragging(true)
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              className={`flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors ${
+                isDragging
+                  ? 'border-brand bg-brand/5'
+                  : 'border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600'
+              }`}
+            >
+              <span className="text-4xl" aria-hidden="true">
+                🖼️
+              </span>
+              <span className="text-sm font-medium">
+                Drag a photo or video here, or <span className="text-brand">browse</span>
+              </span>
+              <span className="text-xs text-gray-400">JPG, PNG, GIF, or MP4 — one file at a time</span>
+            </button>
+          ) : (
+            <div className="group relative mx-auto aspect-square w-full max-w-xs overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+              {file.type.startsWith('video/') ? (
+                <video src={URL.createObjectURL(file)} className="h-full w-full object-cover" controls />
+              ) : (
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt="Selected media preview"
+                  className="h-full w-full object-cover"
+                />
+              )}
+              <button
+                type="button"
+                onClick={removeFile}
+                aria-label="Remove file"
+                className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+              >
+                <CloseIcon className="h-4 w-4" />
+              </button>
+            </div>
+          )}
 
-        {isAllImages && (
-          <div>
+          {isImage && (
             <Button
               type="button"
               variant="ghost"
               className="px-0"
               isLoading={suggestMutation.isPending}
-              onClick={() => suggestMutation.mutate(files[0])}
+              onClick={() => suggestMutation.mutate(file)}
             >
               ✨ Suggest caption
             </Button>
-          </div>
-        )}
+          )}
 
-        {suggestion && (
-          <div className="flex items-start justify-between gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800">
-            <span className="flex-1">Suggested: “{suggestion}”</span>
-            <div className="flex shrink-0 gap-2">
-              <button
-                type="button"
-                className="text-brand hover:underline"
-                onClick={() => {
-                  setCaption(suggestion)
-                  setSuggestion(null)
-                }}
-              >
-                Use this
-              </button>
-              <button
-                type="button"
-                aria-label="Dismiss suggestion"
-                className="text-gray-400 hover:text-gray-600"
-                onClick={() => setSuggestion(null)}
-              >
-                ✕
-              </button>
+          {suggestion && (
+            <div className="flex items-start justify-between gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800">
+              <span className="flex-1">Suggested: “{suggestion}”</span>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  type="button"
+                  className="font-medium text-brand hover:underline"
+                  onClick={() => {
+                    setCaption(suggestion)
+                    setSuggestion(null)
+                  }}
+                >
+                  Use this
+                </button>
+                <button
+                  type="button"
+                  aria-label="Dismiss suggestion"
+                  className="text-gray-400 hover:text-gray-600"
+                  onClick={() => setSuggestion(null)}
+                >
+                  <CloseIcon className="h-4 w-4" />
+                </button>
+              </div>
             </div>
+          )}
+
+          <div>
+            <label htmlFor="create-post-caption" className="sr-only">
+              Caption
+            </label>
+            <textarea
+              id="create-post-caption"
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              placeholder="Write a caption…"
+              rows={3}
+              className="w-full rounded-xl border border-gray-200 bg-transparent px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand dark:border-gray-700"
+            />
           </div>
-        )}
+        </div>
 
-        <label htmlFor="create-post-caption" className="sr-only">
-          Caption
-        </label>
-        <textarea
-          id="create-post-caption"
-          value={caption}
-          onChange={(e) => setCaption(e.target.value)}
-          placeholder="Write a caption…"
-          rows={3}
-          className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-brand dark:border-gray-700"
-        />
-
-        <div className="flex justify-end gap-2">
+        <div className="flex shrink-0 justify-end gap-2 border-t border-gray-200 px-5 py-4 dark:border-gray-800">
           <Button type="button" variant="secondary" onClick={handleClose}>
             Cancel
           </Button>
