@@ -43,7 +43,7 @@ export default function PostGrid({ username }) {
             className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800"
           >
             <img
-              src={post.media?.[0]?.thumbnailUrl || post.media?.[0]?.url}
+              src={post.media?.[0]?.mediaUrl}
               alt={post.caption || 'Post'}
               className="h-full w-full object-cover"
             />

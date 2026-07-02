@@ -22,7 +22,7 @@ export default function PostCard({ post, feedQueryKey }) {
 
       <button type="button" onClick={() => setIsDetailOpen(true)} className="block w-full">
         <img
-          src={post.media?.[0]?.url}
+          src={post.media?.[0]?.mediaUrl}
           alt={post.caption || 'Post media'}
           className="max-h-[600px] w-full object-cover"
         />

@@ -35,7 +35,7 @@ export default function PostDetailModal({ postId, isOpen, onClose }) {
         <div className="flex flex-col sm:flex-row">
           <div className="flex-1 bg-black">
             <img
-              src={post.media?.[0]?.url}
+              src={post.media?.[0]?.mediaUrl}
               alt={post.caption || 'Post media'}
               className="max-h-[70vh] w-full object-contain"
             />
