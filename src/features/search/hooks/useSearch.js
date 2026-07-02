@@ -61,8 +61,8 @@ export function useSearch() {
   const usersQuery = useSearchUsers(input)
   const recentQuery = useRecentSearches()
 
-  const users = useMemo(() => usersQuery.data?.data?.items ?? [], [usersQuery.data])
-  const recent = useMemo(() => recentQuery.data?.data?.items ?? [], [recentQuery.data])
+  const users = useMemo(() => usersQuery.data?.data ?? [], [usersQuery.data])
+  const recent = useMemo(() => recentQuery.data?.data ?? [], [recentQuery.data])
 
   return {
     input,

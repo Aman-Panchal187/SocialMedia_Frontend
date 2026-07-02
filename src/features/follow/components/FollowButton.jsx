@@ -1,26 +1,21 @@
+import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { followApi } from '../../../api/followApi'
 
 export default function FollowButton({ username, isFollowing, isFollowRequested, queryKey }) {
   const queryClient = useQueryClient()
+  const [override, setOverride] = useState(null)
 
   const followMutation = useMutation({
     mutationFn: () => followApi.follow(username),
     onSuccess: (res) => {
       const status = res.data.status
+      const next = { isFollowing: status === 'accepted', isFollowRequested: status === 'pending' }
+      setOverride(next)
       if (queryKey) {
         queryClient.setQueryData(queryKey, (old) =>
-          old
-            ? {
-                ...old,
-                data: {
-                  ...old.data,
-                  isFollowing: status === 'accepted',
-                  isFollowRequested: status === 'pending',
-                },
-              }
-            : old
+          old ? { ...old, data: { ...old.data, ...next } } : old
         )
       }
     },
@@ -30,11 +25,11 @@ export default function FollowButton({ username, isFollowing, isFollowRequested,
   const unfollowMutation = useMutation({
     mutationFn: () => followApi.unfollow(username),
     onSuccess: () => {
+      const next = { isFollowing: false, isFollowRequested: false }
+      setOverride(next)
       if (queryKey) {
         queryClient.setQueryData(queryKey, (old) =>
-          old
-            ? { ...old, data: { ...old.data, isFollowing: false, isFollowRequested: false } }
-            : old
+          old ? { ...old, data: { ...old.data, ...next } } : old
         )
       }
     },
@@ -42,8 +37,10 @@ export default function FollowButton({ username, isFollowing, isFollowRequested,
   })
 
   const isPending = followMutation.isPending || unfollowMutation.isPending
+  const effectiveIsFollowing = override ? override.isFollowing : isFollowing
+  const effectiveIsFollowRequested = override ? override.isFollowRequested : isFollowRequested
 
-  if (isFollowing) {
+  if (effectiveIsFollowing) {
     return (
       <button
         type="button"
@@ -60,7 +57,7 @@ export default function FollowButton({ username, isFollowing, isFollowRequested,
     )
   }
 
-  if (isFollowRequested) {
+  if (effectiveIsFollowRequested) {
     return (
       <button
         type="button"

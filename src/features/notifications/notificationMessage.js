@@ -4,6 +4,7 @@ const MESSAGES = {
   reply: 'replied to your comment',
   follow: 'started following you',
   follow_request: 'requested to follow you',
+  follow_accepted: 'accepted your follow request',
   story_reaction: 'reacted to your story',
   story_reply: 'replied to your story',
 }

@@ -39,8 +39,8 @@ export default function FollowRequestsList() {
 
   return (
     <div>
-      {requests.map((user) => (
-        <div key={user.id} className="flex items-center justify-between py-2">
+      {requests.map(({ requestId, user }) => (
+        <div key={requestId} className="flex items-center justify-between py-2">
           <Link to={`/${user.username}`} className="flex items-center gap-3">
             <Avatar src={user.avatarUrl} alt={user.username} size="sm" />
             <span className="text-sm font-semibold">{user.username}</span>

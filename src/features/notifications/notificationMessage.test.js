@@ -8,6 +8,7 @@ describe('notificationMessage', () => {
     expect(notificationMessage('reply')).toBe('replied to your comment')
     expect(notificationMessage('follow')).toBe('started following you')
     expect(notificationMessage('follow_request')).toBe('requested to follow you')
+    expect(notificationMessage('follow_accepted')).toBe('accepted your follow request')
     expect(notificationMessage('story_reaction')).toBe('reacted to your story')
     expect(notificationMessage('story_reply')).toBe('replied to your story')
   })
