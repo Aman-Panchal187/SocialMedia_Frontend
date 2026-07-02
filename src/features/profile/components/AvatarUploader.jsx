@@ -55,8 +55,8 @@ export default function AvatarUploader() {
     mutationFn: usersApi.updateAvatar,
     onSuccess: (res) => {
       toast.success('Avatar updated')
-      setAuth({ user: { ...user, avatarUrl: res.data.avatarUrl } })
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      setAuth({ user: { ...user, avatarUrl: res.data.user.avatarUrl } })
+      queryClient.invalidateQueries()
       setImageSrc(null)
     },
   })

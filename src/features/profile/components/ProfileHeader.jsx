@@ -5,9 +5,11 @@ import Button from '../../../components/common/Button'
 import FollowButton from '../../follow/components/FollowButton'
 import FollowersListModal from '../../follow/components/FollowersListModal'
 import FollowingListModal from '../../follow/components/FollowingListModal'
+import { useAuth } from '../../auth/hooks/useAuth'
 
 export default function ProfileHeader({ profile, queryKey }) {
   const [modal, setModal] = useState(null)
+  const { logout } = useAuth()
 
   return (
     <div className="flex flex-col gap-4 border-b border-gray-200 p-4 dark:border-gray-800 sm:flex-row sm:items-center sm:gap-10">
@@ -17,9 +19,14 @@ export default function ProfileHeader({ profile, queryKey }) {
         <div className="flex flex-wrap items-center gap-4">
           <h1 className="text-xl font-semibold">{profile.username}</h1>
           {profile.isOwnProfile ? (
-            <Link to="/edit-profile">
-              <Button variant="secondary">Edit profile</Button>
-            </Link>
+            <>
+              <Link to="/edit-profile">
+                <Button variant="secondary">Edit profile</Button>
+              </Link>
+              <Button variant="secondary" onClick={logout}>
+                Log out
+              </Button>
+            </>
           ) : (
             <FollowButton
               username={profile.username}
