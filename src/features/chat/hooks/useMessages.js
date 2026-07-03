@@ -110,6 +110,11 @@ export function useSendMessage(conversationId) {
       queryClient.setQueryData(CONVERSATIONS_QUERY_KEY, (old) =>
         patchConversationPreview(old, conversationId, serverMessage)
       )
+      // A conversation only appears in the list once it has a message (see
+      // backend chat.repository.js:findConversationsForUser), so the very first
+      // message in a brand-new conversation won't be matched by the patch above
+      // — refetch so it shows up for both participants.
+      queryClient.invalidateQueries({ queryKey: CONVERSATIONS_QUERY_KEY })
     },
     onError: (_err, _variables, context) => {
       if (context?.previousMessages) {

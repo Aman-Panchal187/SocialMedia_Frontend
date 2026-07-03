@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import Button from '../../../components/common/Button'
 import { useSendMessage } from '../hooks/useMessages'
 import { attachmentContentType } from '../messageHelpers'
+import { PaperclipIcon, SendIcon, CloseIcon } from '../../../components/common/icons'
 
 const TYPING_STOP_DELAY_MS = 2000
 const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024
@@ -83,11 +83,16 @@ export default function MessageComposer({ conversationId, onTyping }) {
           {attachment.type.startsWith('image/') ? (
             <img src={URL.createObjectURL(attachment)} alt="preview" className="h-10 w-10 rounded object-cover" />
           ) : (
-            <span>📎</span>
+            <PaperclipIcon className="h-5 w-5 shrink-0 text-gray-500" />
           )}
           <span className="flex-1 truncate">{attachment.name}</span>
-          <button type="button" onClick={clearAttachment} aria-label="Remove attachment" className="text-gray-500">
-            ✕
+          <button
+            type="button"
+            onClick={clearAttachment}
+            aria-label="Remove attachment"
+            className="rounded-full p-1 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
+            <CloseIcon className="h-4 w-4" />
           </button>
         </div>
       )}
@@ -104,9 +109,9 @@ export default function MessageComposer({ conversationId, onTyping }) {
         <label
           htmlFor="chat-attachment-input"
           aria-label="Attach a file"
-          className="cursor-pointer rounded-full p-2 text-xl hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="flex shrink-0 cursor-pointer items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
         >
-          📎
+          <PaperclipIcon />
         </label>
         <label htmlFor="message-composer-input" className="sr-only">
           Message
@@ -121,13 +126,14 @@ export default function MessageComposer({ conversationId, onTyping }) {
           disabled={Boolean(attachment)}
           className="flex-1 rounded-full border border-gray-300 bg-transparent px-4 py-2 text-sm outline-none focus:border-brand disabled:opacity-50 dark:border-gray-700"
         />
-        <Button
+        <button
           type="submit"
-          isLoading={sendMessageMutation.isPending}
-          disabled={!attachment && !text.trim()}
+          disabled={sendMessageMutation.isPending || (!attachment && !text.trim())}
+          aria-label="Send message"
+          className="flex shrink-0 items-center justify-center rounded-full bg-brand p-2.5 text-white transition-opacity hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Send
-        </Button>
+          <SendIcon />
+        </button>
       </div>
     </form>
   )

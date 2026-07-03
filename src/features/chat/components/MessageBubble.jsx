@@ -1,6 +1,6 @@
-import { formatDistanceToNowStrict } from 'date-fns'
+import { format } from 'date-fns'
 import clsx from 'clsx'
-import { messageStatusTick } from '../messageHelpers'
+import { PaperclipIcon, CheckIcon } from '../../../components/common/icons'
 
 function fileNameFromUrl(url) {
   if (!url) return 'file'
@@ -22,9 +22,7 @@ function MessageContent({ message }) {
         />
       )
     case 'video':
-      return (
-        <video src={message.mediaUrl} controls className="max-h-64 w-full rounded-lg" />
-      )
+      return <video src={message.mediaUrl} controls className="max-h-64 w-full rounded-lg" />
     case 'file':
       return (
         <a
@@ -34,7 +32,8 @@ function MessageContent({ message }) {
           download
           className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm underline dark:border-gray-700"
         >
-          📎 {fileNameFromUrl(message.mediaUrl)}
+          <PaperclipIcon className="h-4 w-4 shrink-0" />
+          <span className="truncate">{fileNameFromUrl(message.mediaUrl)}</span>
         </a>
       )
     default:
@@ -47,8 +46,8 @@ export default function MessageBubble({ message, isOwn }) {
     <div className={clsx('flex w-full', isOwn ? 'justify-end' : 'justify-start')}>
       <div
         className={clsx(
-          'max-w-[75%] rounded-2xl px-3 py-2',
-          isOwn ? 'bg-brand text-white' : 'bg-gray-100 dark:bg-gray-800'
+          'max-w-[75%] rounded-2xl px-3 py-2 shadow-sm',
+          isOwn ? 'bg-brand text-white' : 'bg-white dark:bg-gray-800'
         )}
       >
         {message.replyToStoryId && (
@@ -57,11 +56,16 @@ export default function MessageBubble({ message, isOwn }) {
           </p>
         )}
         <MessageContent message={message} />
-        <div className={clsx('mt-1 flex items-center justify-end gap-1 text-[10px]', isOwn ? 'text-white/70' : 'text-gray-400')}>
-          <span>{formatDistanceToNowStrict(new Date(message.createdAt))} ago</span>
+        <div
+          className={clsx(
+            'mt-1 flex items-center justify-end gap-1 text-[10px]',
+            isOwn ? 'text-white/70' : 'text-gray-400'
+          )}
+        >
+          <span>{format(new Date(message.createdAt), 'h:mm a')}</span>
           {isOwn && (
             <span aria-label={message.status === 'read' ? 'Read' : 'Sent'}>
-              {messageStatusTick(message.status)}
+              <CheckIcon double={message.status === 'read'} className="h-3.5 w-3.5" />
             </span>
           )}
         </div>

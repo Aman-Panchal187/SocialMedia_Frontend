@@ -61,9 +61,21 @@ export function useChatSocket(activeConversationId) {
         })
       }
 
-      queryClient.setQueryData(CONVERSATIONS_QUERY_KEY, (old) =>
-        patchConversationsList(old, { conversationId, message, bumpUnread: !isActive })
+      const currentList = queryClient.getQueryData(CONVERSATIONS_QUERY_KEY)
+      const alreadyListed = currentList?.pages?.some((page) =>
+        page.data.items.some((item) => item.id === conversationId)
       )
+
+      if (alreadyListed) {
+        queryClient.setQueryData(CONVERSATIONS_QUERY_KEY, (old) =>
+          patchConversationsList(old, { conversationId, message, bumpUnread: !isActive })
+        )
+      } else {
+        // First message of a brand-new conversation — it isn't in the cached
+        // list yet (conversations only appear once they have a message), so
+        // refetch to pull it in with the correct otherUser/unreadCount.
+        queryClient.invalidateQueries({ queryKey: CONVERSATIONS_QUERY_KEY })
+      }
     }
 
     const handleUnreadCount = (payload) => {

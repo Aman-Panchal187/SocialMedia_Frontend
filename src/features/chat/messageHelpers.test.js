@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { attachmentContentType, messageStatusTick } from './messageHelpers'
+import { attachmentContentType } from './messageHelpers'
 
 describe('attachmentContentType', () => {
   it('classifies image mimetypes', () => {
@@ -13,15 +13,5 @@ describe('attachmentContentType', () => {
   it('falls back to file for other mimetypes', () => {
     expect(attachmentContentType({ type: 'application/pdf' })).toBe('file')
     expect(attachmentContentType({ type: 'text/plain' })).toBe('file')
-  })
-})
-
-describe('messageStatusTick', () => {
-  it('returns a double tick for read messages', () => {
-    expect(messageStatusTick('read')).toBe('✓✓')
-  })
-
-  it('returns a single tick for sent (unread) messages', () => {
-    expect(messageStatusTick('sent')).toBe('✓')
   })
 })

@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { formatDistanceToNowStrict } from 'date-fns'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useMutation } from '@tanstack/react-query'
+import { formatDistanceToNowStrict, isSameDay, isToday, isYesterday, format } from 'date-fns'
 import Skeleton from 'react-loading-skeleton'
 import Avatar from '../../../components/common/Avatar'
 import InfiniteScrollSentinel from '../../../components/common/InfiniteScrollSentinel'
+import { ArrowLeftIcon } from '../../../components/common/icons'
 import { useSocket } from '../../../context/SocketContext'
 import { useAuthStore } from '../../../app/store'
 import { chatApi } from '../../../api/chatApi'
 import { extractErrorMessage } from '../../../api/axiosInstance'
-import { CONVERSATIONS_QUERY_KEY } from '../hooks/useConversations'
 import { useMarkRead, useMessages } from '../hooks/useMessages'
 import { useChatSocket } from '../hooks/useChatSocket'
 import OnlineStatusDot from '../components/OnlineStatusDot'
@@ -18,33 +18,25 @@ import MessageBubble from '../components/MessageBubble'
 import MessageComposer from '../components/MessageComposer'
 import TypingIndicator from '../components/TypingIndicator'
 
+function formatDaySeparator(dateStr) {
+  const date = new Date(dateStr)
+  if (isToday(date)) return 'Today'
+  if (isYesterday(date)) return 'Yesterday'
+  return format(date, 'MMMM d, yyyy')
+}
+
 export default function ChatConversationPage() {
   const { username } = useParams()
+  const navigate = useNavigate()
   const currentUser = useAuthStore((state) => state.user)
-  const queryClient = useQueryClient()
   const { socket } = useSocket()
   const [isTypingRemote, setIsTypingRemote] = useState(false)
 
+  // Starting a conversation just resolves/creates the underlying record for
+  // sending messages — it deliberately does NOT get added to either user's
+  // conversation list until a message actually exists (see useSendMessage).
   const startConversationMutation = useMutation({
     mutationFn: () => chatApi.startConversation(username),
-    onSuccess: (response) => {
-      queryClient.setQueryData(CONVERSATIONS_QUERY_KEY, (old) => {
-        if (!old) return old
-        const conversation = response.data
-        const alreadyPresent = old.pages.some((page) =>
-          page.data.items.some((item) => item.id === conversation.id)
-        )
-        if (alreadyPresent) return old
-        const [firstPage, ...restPages] = old.pages
-        return {
-          ...old,
-          pages: [
-            { ...firstPage, data: { ...firstPage.data, items: [conversation, ...firstPage.data.items] } },
-            ...restPages,
-          ],
-        }
-      })
-    },
   })
   const { mutate: startConversation } = startConversationMutation
 
@@ -85,6 +77,17 @@ export default function ChatConversationPage() {
     if (conversationId) emitTyping(conversationId, isTyping)
   }
 
+  const backButton = (
+    <button
+      type="button"
+      onClick={() => navigate('/messages')}
+      aria-label="Back to messages"
+      className="shrink-0 rounded-full p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+    >
+      <ArrowLeftIcon />
+    </button>
+  )
+
   if (startConversationMutation.isPending || startConversationMutation.isIdle) {
     return (
       <div className="mx-auto max-w-lg space-y-3 px-4 py-6">
@@ -121,7 +124,8 @@ export default function ChatConversationPage() {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-lg flex-col">
-      <div className="flex items-center gap-3 border-b border-gray-200 px-3 py-3 dark:border-gray-800">
+      <div className="flex items-center gap-2 border-b border-gray-200 px-2 py-3 dark:border-gray-800">
+        {backButton}
         <div className="relative shrink-0">
           <Avatar src={otherUser.avatarUrl} alt={otherUser.username} size="sm" />
           <OnlineStatusDot isOnline={otherUser.isOnline} className="absolute bottom-0 right-0" />
@@ -141,10 +145,24 @@ export default function ChatConversationPage() {
         <CallButton username={otherUser.username} />
       </div>
 
-      <div className="flex flex-1 flex-col-reverse gap-2 overflow-y-auto px-3 py-3">
-        {messagesNewestFirst.map((message) => (
-          <MessageBubble key={message.id} message={message} isOwn={message.senderId === currentUser?.id} />
-        ))}
+      <div className="flex flex-1 flex-col-reverse gap-2 overflow-y-auto bg-gray-50 px-3 py-3 dark:bg-black">
+        {messagesNewestFirst.map((message, index) => {
+          const olderMessage = messagesNewestFirst[index + 1]
+          const showDaySeparator = !olderMessage || !isSameDay(new Date(message.createdAt), new Date(olderMessage.createdAt))
+
+          return (
+            <div key={message.id} className="contents">
+              <MessageBubble message={message} isOwn={message.senderId === currentUser?.id} />
+              {showDaySeparator && (
+                <div className="flex justify-center py-1">
+                  <span className="rounded-full bg-gray-200 px-3 py-1 text-[11px] font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                    {formatDaySeparator(message.createdAt)}
+                  </span>
+                </div>
+              )}
+            </div>
+          )
+        })}
         {messagesQuery.isLoading && (
           <div className="space-y-2">
             {Array.from({ length: 4 }).map((_, index) => (

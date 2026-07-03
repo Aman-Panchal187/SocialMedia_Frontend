@@ -28,12 +28,17 @@ export default function ProfileHeader({ profile, queryKey }) {
               </Button>
             </>
           ) : (
-            <FollowButton
-              username={profile.username}
-              isFollowing={profile.isFollowing}
-              isFollowRequested={profile.isFollowRequested}
-              queryKey={queryKey}
-            />
+            <>
+              <FollowButton
+                username={profile.username}
+                isFollowing={profile.isFollowing}
+                isFollowRequested={profile.isFollowRequested}
+                queryKey={queryKey}
+              />
+              <Link to={`/messages/${profile.username}`}>
+                <Button variant="secondary">Message</Button>
+              </Link>
+            </>
           )}
         </div>
 
