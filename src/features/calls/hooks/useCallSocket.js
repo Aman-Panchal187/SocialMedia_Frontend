@@ -91,20 +91,20 @@ export function useCallSocket() {
   }, [])
 
   const startCall = useCallback(
-    (username, callType) => {
+    (peer, callType) => {
       if (!socket) return
       setState({
         phase: 'ringing-outgoing',
         callId: null,
         callType,
-        peerInfo: { username },
+        peerInfo: peer,
         activeSince: null,
       })
       // The server may optionally ack call:invite with { callId } so the caller
       // can reference it for call:cancel while still ringing (the caller isn't
       // otherwise told the callId until call:accepted). If no ack arrives, cancel
       // degrades to a local-only reset since there is no callId to relay anyway.
-      socket.emit('call:invite', { calleeUsername: username, callType }, (ack) => {
+      socket.emit('call:invite', { calleeUsername: peer.username, callType }, (ack) => {
         const callId = ack?.callId
         if (!callId) return
         callIdRef.current = callId

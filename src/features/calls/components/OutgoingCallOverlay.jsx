@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Avatar from '../../../components/common/Avatar'
+import { PhoneIcon } from '../../../components/common/icons'
 import { useCall } from '../CallContext'
 
 export default function OutgoingCallOverlay() {
@@ -45,9 +46,9 @@ export default function OutgoingCallOverlay() {
             type="button"
             onClick={cancelCall}
             aria-label="Cancel call"
-            className="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-danger text-2xl text-white transition-transform hover:scale-105"
+            className="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-danger text-white transition-transform hover:scale-105"
           >
-            ✕
+            <PhoneIcon className="h-6 w-6 rotate-[135deg]" />
           </button>
         </motion.div>
       </motion.div>

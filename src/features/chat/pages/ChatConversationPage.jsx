@@ -142,7 +142,7 @@ export default function ChatConversationPage() {
                 : 'Offline'}
           </p>
         </div>
-        <CallButton username={otherUser.username} />
+        <CallButton user={otherUser} />
       </div>
 
       <div className="flex flex-1 flex-col-reverse gap-2 overflow-y-auto bg-gray-50 px-3 py-3 dark:bg-black">

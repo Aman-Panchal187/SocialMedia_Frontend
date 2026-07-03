@@ -49,13 +49,13 @@ export default function PostDetailModal({ postId, isOpen, onClose }) {
                 src={post.media?.[0]?.mediaUrl}
                 controls
                 playsInline
-                className="max-h-full max-w-full object-contain"
+                className="h-full w-full object-contain"
               />
             ) : (
               <img
                 src={post.media?.[0]?.mediaUrl}
                 alt={post.caption || 'Post media'}
-                className="max-h-full max-w-full object-contain"
+                className="h-full w-full object-contain"
               />
             )}
           </div>

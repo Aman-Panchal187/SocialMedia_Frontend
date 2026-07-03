@@ -2,7 +2,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import toast from 'react-hot-toast'
 import { chatApi } from '../../../api/chatApi'
 import { useAuthStore } from '../../../app/store'
-import { CONVERSATIONS_QUERY_KEY } from './useConversations'
+import { CONVERSATIONS_QUERY_KEY, UNREAD_COUNT_QUERY_KEY } from './useConversations'
 
 export function messagesQueryKey(conversationId) {
   return ['chat', 'messages', conversationId]
@@ -15,6 +15,11 @@ export function useMessages(conversationId) {
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.data.nextCursor ?? undefined,
     enabled: Boolean(conversationId),
+    // Messages are real-time-critical: without this, the global 30s staleTime
+    // can serve a cached page on mount and miss anything sent while the
+    // conversation was closed (the live socket patch only fires while open).
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
 }
 
@@ -131,6 +136,7 @@ export function useMarkRead(conversationId) {
   return useMutation({
     mutationFn: () => chatApi.markRead(conversationId),
     onSuccess: () => {
+      let clearedCount = 0
       queryClient.setQueryData(CONVERSATIONS_QUERY_KEY, (old) => {
         if (!old) return old
         return {
@@ -139,13 +145,25 @@ export function useMarkRead(conversationId) {
             ...page,
             data: {
               ...page.data,
-              items: page.data.items.map((item) =>
-                item.id === conversationId ? { ...item, unreadCount: 0 } : item
-              ),
+              items: page.data.items.map((item) => {
+                if (item.id !== conversationId) return item
+                clearedCount = item.unreadCount ?? 0
+                return { ...item, unreadCount: 0 }
+              }),
             },
           })),
         }
       })
+
+      if (clearedCount > 0) {
+        queryClient.setQueryData(UNREAD_COUNT_QUERY_KEY, (old) => {
+          if (!old) return old
+          return { ...old, data: { count: Math.max(0, (old.data?.count ?? 0) - clearedCount) } }
+        })
+      }
+      // Reconcile with the server in case of drift (e.g. a message arrived
+      // between the fetch and this mark-read call).
+      queryClient.invalidateQueries({ queryKey: UNREAD_COUNT_QUERY_KEY })
     },
   })
 }

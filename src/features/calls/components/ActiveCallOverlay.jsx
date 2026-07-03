@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Avatar from '../../../components/common/Avatar'
+import { MicIcon, CameraIcon, PhoneIcon } from '../../../components/common/icons'
 import { useCall } from '../CallContext'
 
 function useElapsedSeconds(activeSince) {
@@ -41,6 +42,37 @@ export default function ActiveCallOverlay() {
 
   const isVisible = phase === 'connecting' || phase === 'active'
   const isVideoCall = callType === 'video'
+
+  // This component stays mounted the whole call (it just returns null when
+  // not visible), so the stream can be assigned to state while phase is still
+  // 'ringing-*' — before the <video>/<audio> elements exist in the DOM. A
+  // plain useEffect keyed on the stream would then find a null ref and never
+  // re-run once the element actually mounts, since the stream value itself
+  // doesn't change again. Callback refs fire exactly when the node appears,
+  // so they're used instead of (well, in addition to) the effects below.
+  const attachRemoteVideo = useCallback(
+    (node) => {
+      remoteVideoRef.current = node
+      if (node) node.srcObject = remoteStream || null
+    },
+    [remoteStream]
+  )
+
+  const attachLocalVideo = useCallback(
+    (node) => {
+      localVideoRef.current = node
+      if (node) node.srcObject = localStream || null
+    },
+    [localStream]
+  )
+
+  const attachRemoteAudio = useCallback(
+    (node) => {
+      remoteAudioRef.current = node
+      if (node) node.srcObject = remoteStream || null
+    },
+    [remoteStream]
+  )
 
   useEffect(() => {
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream || null
@@ -86,22 +118,22 @@ export default function ActiveCallOverlay() {
         role="dialog"
         aria-modal="true"
         aria-label="Active call"
-        className="fixed inset-0 z-50 flex flex-col bg-black"
+        className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-black"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
       >
       {isVideoCall ? (
-        <div className="relative flex-1">
+        <div className="relative min-h-0 flex-1">
           <video
-            ref={remoteVideoRef}
+            ref={attachRemoteVideo}
             autoPlay
             playsInline
             className="h-full w-full object-cover"
           />
           <video
-            ref={localVideoRef}
+            ref={attachLocalVideo}
             autoPlay
             playsInline
             muted
@@ -112,8 +144,8 @@ export default function ActiveCallOverlay() {
           )}
         </div>
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 text-white">
-          <audio ref={remoteAudioRef} autoPlay />
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 text-white">
+          <audio ref={attachRemoteAudio} autoPlay />
           <Avatar src={peerInfo?.avatarUrl} alt={peerInfo?.username} size="xl" />
           <p className="text-lg font-semibold">{peerInfo?.fullName || peerInfo?.username}</p>
           <p className="text-sm text-white/70">
@@ -128,23 +160,23 @@ export default function ActiveCallOverlay() {
         </p>
       )}
 
-      <div className="flex items-center justify-center gap-6 bg-black/40 py-6">
+      <div className="flex shrink-0 items-center justify-center gap-6 bg-black/40 py-6">
         <button
           type="button"
           onClick={toggleMute}
           aria-label={isMuted ? 'Unmute' : 'Mute'}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-xl text-white hover:bg-white/30"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30"
         >
-          {isMuted ? '🔇' : '🎙️'}
+          <MicIcon muted={isMuted} />
         </button>
         {isVideoCall && (
           <button
             type="button"
             onClick={toggleCamera}
             aria-label={isCameraOff ? 'Turn camera on' : 'Turn camera off'}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-xl text-white hover:bg-white/30"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30"
           >
-            {isCameraOff ? '📷' : '🎥'}
+            <CameraIcon off={isCameraOff} />
           </button>
         )}
         <button
@@ -152,9 +184,9 @@ export default function ActiveCallOverlay() {
           type="button"
           onClick={hangUp}
           aria-label="Hang up"
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-danger text-2xl text-white hover:scale-105"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-danger text-white hover:scale-105"
         >
-          ✕
+          <PhoneIcon className="h-6 w-6 rotate-[135deg]" />
         </button>
       </div>
       </motion.div>

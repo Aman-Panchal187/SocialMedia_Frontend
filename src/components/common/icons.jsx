@@ -157,6 +157,42 @@ export function ChatBubbleIcon({ className = 'h-6 w-6' }) {
   )
 }
 
+export function MicIcon({ muted = false, className = 'h-5 w-5' }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+      {muted && <path d="M3 3l18 18" />}
+    </svg>
+  )
+}
+
+export function CameraIcon({ off = false, className = 'h-5 w-5' }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M23 7l-7 5 7 5V7z" />
+      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+      {off && <path d="M3 3l18 18" />}
+    </svg>
+  )
+}
+
 export function ImageIcon({ className = 'h-8 w-8' }) {
   return (
     <svg
