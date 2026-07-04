@@ -39,7 +39,7 @@ export default function CallHistoryItem({ call }) {
         )}
         <button
           type="button"
-          onClick={() => startCall(otherUser?.username, callType)}
+          onClick={() => startCall(otherUser, callType)}
           disabled={phase !== 'idle'}
           aria-label={`Call ${otherUser?.username}`}
           className="rounded-full p-1 text-base hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800"
