@@ -134,6 +134,14 @@ export function GridIcon({ className = 'h-5 w-5' }) {
   )
 }
 
+export function PlayIcon({ className = 'h-4 w-4' }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M6 4.5v15l13-7.5-13-7.5z" />
+    </svg>
+  )
+}
+
 export function BookmarkIcon({ filled = false, className = 'h-6 w-6' }) {
   return (
     <svg
@@ -293,14 +301,14 @@ export function VideoCameraIcon({ className = 'h-5 w-5' }) {
   )
 }
 
-export function ChatBubbleIcon({ className = 'h-6 w-6' }) {
+export function ChatBubbleIcon({ filled = false, className = 'h-6 w-6' }) {
   return (
     <svg
       viewBox="0 0 24 24"
       className={className}
-      fill="none"
+      fill={filled ? 'currentColor' : 'none'}
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={filled ? 0 : 1.8}
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -359,6 +367,41 @@ export function ImageIcon({ className = 'h-8 w-8' }) {
       <rect x="3" y="3" width="18" height="18" rx="2" />
       <circle cx="8.5" cy="8.5" r="1.5" />
       <path d="m21 15-5-5L5 21" />
+    </svg>
+  )
+}
+
+export function UsersIcon({ className = 'h-8 w-8' }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}
+
+export function RefreshIcon({ className = 'h-5 w-5' }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 12a9 9 0 0 1 15.4-6.4L21 8M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-15.4 6.4L3 16M3 21v-5h5" />
     </svg>
   )
 }

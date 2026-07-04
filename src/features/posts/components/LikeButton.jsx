@@ -44,7 +44,7 @@ export default function LikeButton({ postId, isLiked, likeCount, postQueryKey })
       onClick={handleClick}
       disabled={mutation.isPending}
       aria-label={isLiked ? 'Unlike' : 'Like'}
-      className="flex items-center gap-1.5"
+      className="flex items-center gap-1.5 rounded-full transition-transform duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 motion-reduce:transition-none motion-reduce:active:scale-100"
     >
       <motion.span
         key={isLiked ? 'liked' : 'unliked'}

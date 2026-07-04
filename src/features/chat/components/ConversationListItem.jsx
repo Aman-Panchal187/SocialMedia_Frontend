@@ -23,7 +23,7 @@ export default function ConversationListItem({ conversation }) {
   return (
     <Link
       to={`/messages/${otherUser?.username}`}
-      className="flex items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+      className="flex items-center gap-3 rounded-lg p-2 text-left transition-colors duration-150 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 dark:hover:bg-gray-800"
     >
       <div className="relative shrink-0">
         <Avatar src={otherUser?.avatarUrl} alt={otherUser?.username} size="md" />
@@ -42,7 +42,7 @@ export default function ConversationListItem({ conversation }) {
           </span>
         )}
         {hasUnread && (
-          <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold text-white">
+          <span className="flex h-4 min-w-[1rem] animate-scale-in items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold text-white motion-reduce:animate-none">
             {badgeLabel}
           </span>
         )}

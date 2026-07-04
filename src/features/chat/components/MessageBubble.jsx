@@ -1,5 +1,6 @@
 import { format } from 'date-fns'
 import clsx from 'clsx'
+import { motion, useReducedMotion } from 'framer-motion'
 import { PaperclipIcon, CheckIcon } from '../../../components/common/icons'
 
 function fileNameFromUrl(url) {
@@ -42,11 +43,16 @@ function MessageContent({ message }) {
 }
 
 export default function MessageBubble({ message, isOwn }) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <div className={clsx('flex w-full', isOwn ? 'justify-end' : 'justify-start')}>
-      <div
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 8, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className={clsx(
-          'max-w-[75%] rounded-2xl px-3 py-2 shadow-sm',
+          'max-w-[75%] rounded-2xl px-3 py-2 shadow-xs',
           isOwn ? 'bg-brand text-white' : 'bg-white dark:bg-gray-800'
         )}
       >
@@ -69,7 +75,7 @@ export default function MessageBubble({ message, isOwn }) {
             </span>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

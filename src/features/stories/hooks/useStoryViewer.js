@@ -105,12 +105,18 @@ export function useStoryViewer({ rings, initialAuthorIndex = 0, initialStoryInde
     setReactedEmoji(null)
   }, [currentStory?.id])
 
+  // Keyed on isOpen too, not just currentStory?.id — the viewer modal stays
+  // mounted (returning null) while closed rather than unmounting, so reopening
+  // to the exact same author/story index it was left on (e.g. close then
+  // immediately reopen the same ring) wouldn't change currentStory.id at all,
+  // and this reset would silently never re-run.
   useEffect(() => {
+    if (!isOpen) return
     setProgress(0)
     pausedElapsedRef.current = 0
     startedAtRef.current = null
     durationRef.current = IMAGE_DURATION_MS
-  }, [currentStory?.id])
+  }, [isOpen, currentStory?.id])
 
   const stopTimer = useCallback(() => {
     if (rafRef.current) {
@@ -132,8 +138,12 @@ export function useStoryViewer({ rings, initialAuthorIndex = 0, initialStoryInde
     rafRef.current = requestAnimationFrame(tick)
   }, [goNext, stopTimer])
 
+  // isOpen is in the dependency array for the same reason as the reset effect
+  // above — without it, reopening the viewer on the same author/story index
+  // it was already sitting on wouldn't restart the rAF loop at all, leaving
+  // the progress bar frozen and auto-advance never firing.
   useEffect(() => {
-    if (isPaused || !currentStory) {
+    if (!isOpen || isPaused || !currentStory) {
       stopTimer()
       return undefined
     }
@@ -144,7 +154,7 @@ export function useStoryViewer({ rings, initialAuthorIndex = 0, initialStoryInde
     rafRef.current = requestAnimationFrame(tick)
     return stopTimer
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPaused, currentStory?.id, currentStory?.mediaType])
+  }, [isOpen, isPaused, currentStory?.id, currentStory?.mediaType])
 
   const pause = useCallback(() => {
     if (currentStory?.mediaType === 'video') {

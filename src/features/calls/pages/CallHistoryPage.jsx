@@ -1,5 +1,7 @@
 import Skeleton from 'react-loading-skeleton'
 import InfiniteScrollSentinel from '../../../components/common/InfiniteScrollSentinel'
+import EmptyState from '../../../components/common/EmptyState'
+import { PhoneIcon } from '../../../components/common/icons'
 import { useCallHistory } from '../hooks/useCallHistory'
 import CallHistoryItem from '../components/CallHistoryItem'
 
@@ -9,7 +11,7 @@ export default function CallHistoryPage() {
   const calls = callHistoryQuery.data?.pages.flatMap((page) => page.data.items) ?? []
 
   return (
-    <div className="mx-auto max-w-lg px-2">
+    <div className="mx-auto max-w-lg animate-fade-in px-2">
       <h1 className="px-2 py-3 text-lg font-semibold">Calls</h1>
 
       {callHistoryQuery.isLoading && (
@@ -27,7 +29,7 @@ export default function CallHistoryPage() {
       )}
 
       {!callHistoryQuery.isLoading && calls.length === 0 && (
-        <p className="py-16 text-center text-sm text-gray-500">No calls yet.</p>
+        <EmptyState icon={PhoneIcon} title="No calls yet" />
       )}
 
       <div className="flex flex-col gap-1">

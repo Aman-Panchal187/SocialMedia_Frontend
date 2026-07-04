@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Button from '../../../components/common/Button'
+import Input from '../../../components/common/Input'
 import Logo from '../../../components/common/Logo'
 import { useAuth } from '../hooks/useAuth'
 
@@ -35,24 +36,18 @@ export default function ForgotPasswordPage() {
       <div className="mb-6 flex justify-center">
         <Logo iconClassName="h-12 w-12" wordmarkClassName="text-2xl" />
       </div>
-      <h1 className="mb-2 text-center text-2xl font-bold">Forgot password</h1>
-      <p className="mb-6 text-center text-sm text-gray-500">
-        We&apos;ll send a reset code to your email
-      </p>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
-        <div>
-          <input
-            type="email"
-            placeholder="Email"
-            {...register('email')}
-            className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-brand dark:border-gray-700"
-          />
-          {errors.email && <p className="mt-1 text-xs text-danger">{errors.email.message}</p>}
-        </div>
-        <Button type="submit" isLoading={isForgotPasswordLoading}>
-          Send code
-        </Button>
-      </form>
+      <div className="animate-scale-in rounded-2xl border border-gray-200 bg-white p-6 shadow-card dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+        <h1 className="mb-2 text-center text-2xl font-bold">Forgot password</h1>
+        <p className="mb-6 text-center text-sm text-gray-500">
+          We&apos;ll send a reset code to your email
+        </p>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+          <Input type="email" placeholder="Email" error={errors.email?.message} {...register('email')} />
+          <Button type="submit" isLoading={isForgotPasswordLoading} className="mt-2 w-full">
+            Send code
+          </Button>
+        </form>
+      </div>
     </div>
   )
 }

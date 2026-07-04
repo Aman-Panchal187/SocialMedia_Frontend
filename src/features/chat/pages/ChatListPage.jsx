@@ -1,5 +1,7 @@
 import Skeleton from 'react-loading-skeleton'
 import InfiniteScrollSentinel from '../../../components/common/InfiniteScrollSentinel'
+import EmptyState from '../../../components/common/EmptyState'
+import { ChatBubbleIcon } from '../../../components/common/icons'
 import { useConversations } from '../hooks/useConversations'
 import ConversationListItem from '../components/ConversationListItem'
 
@@ -9,7 +11,7 @@ export default function ChatListPage() {
   const conversations = conversationsQuery.data?.pages.flatMap((page) => page.data.items) ?? []
 
   return (
-    <div className="mx-auto max-w-lg px-2">
+    <div className="mx-auto max-w-lg animate-fade-in px-2">
       <h1 className="px-2 py-3 text-lg font-semibold">Messages</h1>
 
       {conversationsQuery.isLoading && (
@@ -27,9 +29,11 @@ export default function ChatListPage() {
       )}
 
       {!conversationsQuery.isLoading && conversations.length === 0 && (
-        <p className="py-16 text-center text-sm text-gray-500">
-          No conversations yet. Visit a mutual follower&apos;s profile to start chatting.
-        </p>
+        <EmptyState
+          icon={ChatBubbleIcon}
+          title="No conversations yet"
+          description="Visit a mutual follower's profile to start chatting."
+        />
       )}
 
       <div className="flex flex-col gap-1">

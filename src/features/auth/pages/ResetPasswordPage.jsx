@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 import Button from '../../../components/common/Button'
+import Input from '../../../components/common/Input'
 import Logo from '../../../components/common/Logo'
 import { useAuth } from '../hooks/useAuth'
 
@@ -43,31 +44,27 @@ export default function ResetPasswordPage() {
       <div className="mb-6 flex justify-center">
         <Logo iconClassName="h-12 w-12" wordmarkClassName="text-2xl" />
       </div>
-      <h1 className="mb-2 text-center text-2xl font-bold">Reset password</h1>
-      <p className="mb-6 text-center text-sm text-gray-500">Enter the code sent to {email}</p>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
-        <div>
-          <input
+      <div className="animate-scale-in rounded-2xl border border-gray-200 bg-white p-6 shadow-card dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+        <h1 className="mb-2 text-center text-2xl font-bold">Reset password</h1>
+        <p className="mb-6 text-center text-sm text-gray-500">Enter the code sent to {email}</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+          <Input
             type="text"
             placeholder="6-digit code"
+            error={errors.code?.message}
             {...register('code')}
-            className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-brand dark:border-gray-700"
           />
-          {errors.code && <p className="mt-1 text-xs text-danger">{errors.code.message}</p>}
-        </div>
-        <div>
-          <input
+          <Input
             type="password"
             placeholder="New password"
+            error={errors.newPassword?.message}
             {...register('newPassword')}
-            className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-brand dark:border-gray-700"
           />
-          {errors.newPassword && <p className="mt-1 text-xs text-danger">{errors.newPassword.message}</p>}
-        </div>
-        <Button type="submit" isLoading={isResetPasswordLoading}>
-          Reset password
-        </Button>
-      </form>
+          <Button type="submit" isLoading={isResetPasswordLoading} className="mt-2 w-full">
+            Reset password
+          </Button>
+        </form>
+      </div>
     </div>
   )
 }

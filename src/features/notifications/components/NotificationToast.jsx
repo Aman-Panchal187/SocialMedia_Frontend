@@ -4,7 +4,7 @@ import { notificationMessage } from '../notificationMessage'
 export default function NotificationToast({ notification, visible }) {
   return (
     <div
-      className={`flex items-center gap-3 rounded-lg bg-white p-3 shadow-lg dark:bg-gray-900 ${
+      className={`flex items-center gap-3 rounded-lg bg-white p-3 shadow-popover transition-opacity duration-200 dark:bg-gray-900 ${
         visible ? 'opacity-100' : 'opacity-0'
       }`}
     >

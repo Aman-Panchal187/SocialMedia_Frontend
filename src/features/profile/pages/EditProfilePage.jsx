@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import AvatarUploader from '../components/AvatarUploader'
 import EditProfileForm from '../components/EditProfileForm'
+import Switch from '../../../components/common/Switch'
 import { usersApi } from '../../../api/usersApi'
 import { useAuthStore } from '../../../app/store'
 
@@ -28,7 +29,7 @@ export default function EditProfilePage() {
   })
 
   return (
-    <div className="mx-auto max-w-lg p-4">
+    <div className="mx-auto max-w-lg animate-fade-in p-4">
       <h1 className="mb-6 text-lg font-semibold">Edit profile</h1>
 
       <AvatarUploader />
@@ -42,11 +43,10 @@ export default function EditProfilePage() {
           <p className="text-sm font-medium">Private account</p>
           <p className="text-xs text-gray-500">Only approved followers can see your posts</p>
         </div>
-        <input
-          type="checkbox"
+        <Switch
+          ariaLabel="Private account"
           defaultChecked={user?.isPrivate}
           onChange={(e) => privacyMutation.mutate(e.target.checked)}
-          className="h-5 w-5"
         />
       </div>
     </div>

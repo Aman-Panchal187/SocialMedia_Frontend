@@ -18,7 +18,7 @@ export default function CallHistoryItem({ call }) {
   const TypeIcon = TYPE_ICONS[callType] || PhoneIcon
 
   return (
-    <div className="flex items-center gap-3 rounded-lg p-2">
+    <div className="flex items-center gap-3 rounded-lg p-2 transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-900">
       <Avatar src={otherUser?.avatarUrl} alt={otherUser?.username} size="md" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{otherUser?.username}</p>
@@ -41,7 +41,7 @@ export default function CallHistoryItem({ call }) {
           onClick={() => startCall(otherUser, callType)}
           disabled={phase !== 'idle'}
           aria-label={`Call ${otherUser?.username}`}
-          className="rounded-full p-1.5 text-brand hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800"
+          className="rounded-full p-1.5 text-brand transition-transform duration-150 hover:bg-gray-100 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800 motion-reduce:transition-none motion-reduce:active:scale-100"
         >
           <TypeIcon className="h-5 w-5" />
         </button>

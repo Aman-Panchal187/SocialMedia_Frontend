@@ -2,6 +2,8 @@ import { useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
 import { motion, useReducedMotion } from 'framer-motion'
 import InfiniteScrollSentinel from '../../../components/common/InfiniteScrollSentinel'
+import EmptyState from '../../../components/common/EmptyState'
+import { BellIcon } from '../../../components/common/icons'
 import PostDetailModal from '../../posts/components/PostDetailModal'
 import { useMarkRead, useNotifications } from '../hooks/useNotifications'
 import NotificationItem from './NotificationItem'
@@ -20,7 +22,7 @@ export default function NotificationPanel() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.15 }}
-      className="max-h-[28rem] w-80 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+      className="max-h-[28rem] w-80 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-popover dark:border-gray-800 dark:bg-gray-900">
       <h2 className="px-2 py-1 text-sm font-semibold">Notifications</h2>
 
       {notificationsQuery.isLoading && (
@@ -35,7 +37,7 @@ export default function NotificationPanel() {
       )}
 
       {!notificationsQuery.isLoading && notifications.length === 0 && (
-        <p className="py-10 text-center text-sm text-gray-500">No notifications yet</p>
+        <EmptyState icon={BellIcon} title="No notifications yet" />
       )}
 
       {notifications.map((notification) => (

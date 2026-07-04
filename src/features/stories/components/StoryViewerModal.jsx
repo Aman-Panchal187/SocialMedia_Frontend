@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { formatDistanceToNowStrict } from 'date-fns'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Avatar from '../../../components/common/Avatar'
-import { EyeIcon } from '../../../components/common/icons'
+import { EyeIcon, CloseIcon, SendIcon } from '../../../components/common/icons'
 import { useAuthStore } from '../../../app/store'
 import { useStoryViewer } from '../hooks/useStoryViewer'
 import StoryViewersListModal from './StoryViewersListModal'
@@ -114,10 +114,10 @@ export default function StoryViewerModal({ rings, initialAuthorIndex, initialSto
             ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            className="ml-auto text-xl text-white"
+            className="ml-auto rounded-full p-1.5 text-white transition-[background-color,transform] duration-150 hover:bg-white/10 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 motion-reduce:transition-none motion-reduce:active:scale-100"
             aria-label="Close"
           >
-            ×
+            <CloseIcon className="h-5 w-5" />
           </button>
         </div>
 
@@ -171,7 +171,7 @@ export default function StoryViewerModal({ rings, initialAuthorIndex, initialSto
               type="button"
               onClick={() => setIsViewersListOpen(true)}
               aria-label="View viewers"
-              className="flex items-center gap-1.5 self-start text-sm text-white/80"
+              className="flex items-center gap-1.5 self-start rounded-full px-2 py-1 text-sm text-white/80 transition-[background-color,transform] duration-150 hover:bg-white/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               <EyeIcon className="h-4 w-4" />
               {currentStory.viewCount ?? 0}
@@ -185,7 +185,7 @@ export default function StoryViewerModal({ rings, initialAuthorIndex, initialSto
                     type="button"
                     onClick={() => react(emoji)}
                     className={clsx(
-                      'rounded-full text-xl transition-transform',
+                      'rounded-full p-1 text-xl transition-transform duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 motion-reduce:transition-none motion-reduce:active:scale-100',
                       reactedEmoji === emoji ? 'scale-125' : 'opacity-80 hover:opacity-100'
                     )}
                     aria-label={`React with ${emoji}`}
@@ -204,20 +204,21 @@ export default function StoryViewerModal({ rings, initialAuthorIndex, initialSto
                   onBlur={resume}
                   placeholder={replyError ? 'Replies unavailable' : `Reply to ${currentRing.author.username}…`}
                   disabled={isReplying}
-                  className="flex-1 rounded-full border border-white/30 bg-transparent px-3 py-2 text-sm text-white placeholder-white/50 outline-none"
+                  className="flex-1 rounded-full border border-white/30 bg-transparent px-3 py-2 text-sm text-white placeholder-white/50 outline-none transition-colors duration-150 focus:border-white/70 focus-visible:ring-2 focus-visible:ring-white/40"
                 />
                 <button
                   type="submit"
                   disabled={isReplying || !replyText.trim()}
+                  aria-label="Send reply"
                   className={clsx(
-                    'text-sm font-semibold text-white',
-                    (isReplying || !replyText.trim()) && 'opacity-50'
+                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-[background-color,transform] duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 motion-reduce:transition-none motion-reduce:active:scale-100',
+                    isReplying || !replyText.trim() ? 'opacity-50' : 'hover:bg-white/10'
                   )}
                 >
-                  Send
+                  <SendIcon className="h-4 w-4" />
                 </button>
               </form>
-              {replyError && <p className="text-xs text-red-400">{replyError}</p>}
+              {replyError && <p className="animate-fade-in text-xs text-red-400">{replyError}</p>}
             </>
           )}
         </div>

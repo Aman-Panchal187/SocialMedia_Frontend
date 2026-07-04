@@ -5,7 +5,8 @@ import { formatDistanceToNowStrict, isSameDay, isToday, isYesterday, format } fr
 import Skeleton from 'react-loading-skeleton'
 import Avatar from '../../../components/common/Avatar'
 import InfiniteScrollSentinel from '../../../components/common/InfiniteScrollSentinel'
-import { ArrowLeftIcon } from '../../../components/common/icons'
+import EmptyState from '../../../components/common/EmptyState'
+import { ArrowLeftIcon, ChatBubbleIcon } from '../../../components/common/icons'
 import { useSocket } from '../../../context/SocketContext'
 import { useAuthStore } from '../../../app/store'
 import { chatApi } from '../../../api/chatApi'
@@ -82,7 +83,7 @@ export default function ChatConversationPage() {
       type="button"
       onClick={() => navigate('/messages')}
       aria-label="Back to messages"
-      className="shrink-0 rounded-full p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+      className="shrink-0 rounded-full p-1.5 text-gray-500 transition-[background-color,transform] duration-150 hover:bg-gray-100 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 dark:text-gray-400 dark:hover:bg-gray-800 motion-reduce:transition-none motion-reduce:active:scale-100"
     >
       <ArrowLeftIcon />
     </button>
@@ -101,29 +102,37 @@ export default function ChatConversationPage() {
     const status = startConversationMutation.error?.response?.status
     if (status === 403) {
       return (
-        <div className="mx-auto max-w-lg px-4 py-16 text-center">
-          <p className="text-sm text-gray-500">
-            You can only message {username} once you follow each other.
-          </p>
-          <Link to={`/${username}`} className="mt-3 inline-block text-sm font-semibold text-brand hover:underline">
-            View profile
-          </Link>
-        </div>
+        <EmptyState
+          icon={ChatBubbleIcon}
+          title="You can't message each other yet"
+          description={`You can only message ${username} once you follow each other.`}
+          action={
+            <Link
+              to={`/${username}`}
+              className="mt-1 text-sm font-semibold text-brand transition-colors hover:text-brand-hover"
+            >
+              View profile
+            </Link>
+          }
+        />
       )
     }
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <p className="text-sm text-gray-500">
-          {extractErrorMessage(startConversationMutation.error)}
-        </p>
-      </div>
-    )
+    return <EmptyState icon={ChatBubbleIcon} title={extractErrorMessage(startConversationMutation.error)} />
   }
 
   const { otherUser } = conversation
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-lg flex-col">
+    // AppLayout wraps every page in <main className="pb-16 pt-4 sm:pb-4">
+    // beneath a sticky h-16 navbar (now visible at every breakpoint) — a fixed
+    // MobileTabBar also overlays on mobile. This page needs a hard height
+    // (rather than natural document flow) so its message list can scroll
+    // internally while the header/composer stay put, so the subtracted
+    // amount has to match that chrome exactly per breakpoint: mobile is the
+    // navbar's h-16 plus main's pt-4 + pb-16 (4rem + 1rem + 4rem = 9rem);
+    // sm+ is the navbar's h-16 plus main's pt-4 + sm:pb-4 (4rem + 1rem + 1rem
+    // = 6rem).
+    <div className="mx-auto flex h-[calc(100vh-9rem)] max-w-lg flex-col sm:h-[calc(100vh-6rem)]">
       <div className="flex items-center gap-2 border-b border-gray-200 px-2 py-3 dark:border-gray-800">
         {backButton}
         <div className="relative shrink-0">
@@ -131,7 +140,10 @@ export default function ChatConversationPage() {
           <OnlineStatusDot isOnline={otherUser.isOnline} className="absolute bottom-0 right-0" />
         </div>
         <div className="min-w-0 flex-1">
-          <Link to={`/${otherUser.username}`} className="block truncate text-sm font-semibold hover:underline">
+          <Link
+            to={`/${otherUser.username}`}
+            className="block truncate text-sm font-semibold transition-colors hover:text-gray-600 dark:hover:text-gray-300"
+          >
             {otherUser.username}
           </Link>
           <p className="text-xs text-gray-400">
@@ -171,7 +183,7 @@ export default function ChatConversationPage() {
           </div>
         )}
         {!messagesQuery.isLoading && messagesNewestFirst.length === 0 && (
-          <p className="py-16 text-center text-sm text-gray-500">
+          <p className="animate-fade-in py-16 text-center text-sm text-gray-500">
             Say hi 👋 — start the conversation.
           </p>
         )}

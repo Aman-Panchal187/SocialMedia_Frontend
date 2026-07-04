@@ -94,7 +94,7 @@ export default function StoryTray() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto flex max-w-lg gap-4 overflow-x-auto px-4 py-3">
+      <div className="mx-auto flex max-w-lg gap-4 overflow-x-auto px-4 py-3 animate-fade-in">
         {Array.from({ length: 6 }).map((_, index) => (
           <div key={index} className="flex flex-col items-center gap-1">
             <Skeleton circle height={64} width={64} />
@@ -107,7 +107,7 @@ export default function StoryTray() {
 
   return (
     <>
-      <div className="mx-auto flex max-w-lg gap-4 overflow-x-auto px-4 py-3">
+      <div className="mx-auto flex max-w-lg animate-fade-in gap-4 overflow-x-auto px-4 py-3">
         <div
           role="button"
           tabIndex={0}
@@ -125,25 +125,27 @@ export default function StoryTray() {
               }
             }
           }}
-          className="flex shrink-0 cursor-pointer select-none flex-col items-center gap-1"
+          className="flex shrink-0 cursor-pointer select-none flex-col items-center gap-1 rounded-xl transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 motion-reduce:transition-none motion-reduce:active:scale-100"
         >
           <div className="relative">
-            {hasOwnStory ? (
-              <div
-                className={clsx(
-                  'rounded-full p-[2px]',
-                  hasUnseenOwnStory
+            {/* Always wrap in the same two-layer ring structure regardless of
+                hasOwnStory — rendering a bare Avatar in the "no story" case
+                would drop the ring's padding, making it a different size
+                than every other entry in the tray and throwing off alignment. */}
+            <div
+              className={clsx(
+                'rounded-full p-[2px] transition-transform duration-150',
+                hasOwnStory
+                  ? hasUnseenOwnStory
                     ? 'bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600'
                     : 'bg-gray-300 dark:bg-gray-700'
-                )}
-              >
-                <div className="rounded-full bg-white p-[2px] dark:bg-gray-900">
-                  <Avatar src={currentUser?.avatarUrl} alt={currentUser?.username} size="lg" />
-                </div>
+                  : 'bg-transparent'
+              )}
+            >
+              <div className="rounded-full bg-white p-[2px] dark:bg-gray-900">
+                <Avatar src={currentUser?.avatarUrl} alt={currentUser?.username} size="lg" />
               </div>
-            ) : (
-              <Avatar src={currentUser?.avatarUrl} alt={currentUser?.username} size="lg" />
-            )}
+            </div>
             <button
               type="button"
               aria-label="Add another story"
@@ -152,7 +154,7 @@ export default function StoryTray() {
                 e.stopPropagation()
                 setIsCreateOpen(true)
               }}
-              className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-xs font-bold text-white ring-2 ring-white dark:ring-gray-900"
+              className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-xs font-bold text-white ring-2 ring-white transition-transform duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 dark:ring-gray-900 motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               +
             </button>
@@ -165,7 +167,7 @@ export default function StoryTray() {
             key={ring.author.id}
             type="button"
             onClick={() => setActiveAuthorIndex(index)}
-            className="flex shrink-0 flex-col items-center gap-1"
+            className="flex shrink-0 flex-col items-center gap-1 rounded-xl transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 motion-reduce:transition-none motion-reduce:active:scale-100"
           >
             <div
               className={clsx(

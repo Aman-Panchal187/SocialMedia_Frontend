@@ -46,10 +46,18 @@ export default function ProfileHeader({ profile, queryKey }) {
           <span>
             <strong>{profile.postCount}</strong> posts
           </span>
-          <button type="button" onClick={() => setModal('followers')}>
+          <button
+            type="button"
+            onClick={() => setModal('followers')}
+            className="rounded-md transition-colors duration-150 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 dark:hover:text-gray-300"
+          >
             <strong>{profile.followerCount}</strong> followers
           </button>
-          <button type="button" onClick={() => setModal('following')}>
+          <button
+            type="button"
+            onClick={() => setModal('following')}
+            className="rounded-md transition-colors duration-150 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 dark:hover:text-gray-300"
+          >
             <strong>{profile.followingCount}</strong> following
           </button>
         </div>

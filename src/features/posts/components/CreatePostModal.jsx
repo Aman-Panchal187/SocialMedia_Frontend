@@ -2,8 +2,9 @@ import { useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import Modal from '../../../components/common/Modal'
+import ModalHeader from '../../../components/common/ModalHeader'
 import Button from '../../../components/common/Button'
-import { CloseIcon } from '../../../components/common/icons'
+import { CloseIcon, ImageIcon } from '../../../components/common/icons'
 import { postsApi } from '../../../api/postsApi'
 import { aiApi } from '../../../api/aiApi'
 
@@ -87,17 +88,7 @@ export default function CreatePostModal({ isOpen, onClose }) {
   return (
     <Modal isOpen={isOpen} onClose={handleClose} className="overflow-hidden p-0 sm:max-w-xl">
       <form onSubmit={handleSubmit} className="flex max-h-[85vh] flex-col">
-        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
-          <h2 className="text-lg font-semibold">Create new post</h2>
-          <button
-            type="button"
-            onClick={handleClose}
-            aria-label="Close"
-            className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
-          >
-            <CloseIcon />
-          </button>
-        </div>
+        <ModalHeader title="Create new post" onClose={handleClose} />
 
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           <label htmlFor="create-post-file" className="sr-only">
@@ -122,14 +113,16 @@ export default function CreatePostModal({ isOpen, onClose }) {
               }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
-              className={`flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors ${
+              className={`flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
                 isDragging
                   ? 'border-brand bg-brand/5'
                   : 'border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600'
               }`}
             >
-              <span className="text-4xl" aria-hidden="true">
-                🖼️
+              <span
+                className={`flex h-14 w-14 items-center justify-center rounded-full transition-colors duration-150 ${isDragging ? 'bg-brand/10 text-brand' : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500'}`}
+              >
+                <ImageIcon className="h-7 w-7" />
               </span>
               <span className="text-sm font-medium">
                 Drag a photo or video here, or <span className="text-brand">browse</span>
@@ -137,7 +130,7 @@ export default function CreatePostModal({ isOpen, onClose }) {
               <span className="text-xs text-gray-400">JPG, PNG, GIF, or MP4 — one file at a time</span>
             </button>
           ) : (
-            <div className="group relative mx-auto h-56 w-full max-w-xs shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+            <div className="group relative mx-auto h-56 w-full max-w-xs shrink-0 animate-scale-in overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
               {file.type.startsWith('video/') ? (
                 <video src={URL.createObjectURL(file)} className="h-full w-full object-cover" controls />
               ) : (
@@ -151,7 +144,7 @@ export default function CreatePostModal({ isOpen, onClose }) {
                 type="button"
                 onClick={removeFile}
                 aria-label="Remove file"
-                className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+                className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white transition-transform duration-150 hover:bg-black/80 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 motion-reduce:transition-none motion-reduce:active:scale-100"
               >
                 <CloseIcon className="h-4 w-4" />
               </button>
@@ -171,7 +164,7 @@ export default function CreatePostModal({ isOpen, onClose }) {
           )}
 
           {suggestion && (
-            <div className="flex items-start justify-between gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800">
+            <div className="flex animate-scale-in items-start justify-between gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800">
               <span className="flex-1">Suggested: “{suggestion}”</span>
               <div className="flex shrink-0 gap-2">
                 <button

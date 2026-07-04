@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import Button from '../../../components/common/Button'
+import Input from '../../../components/common/Input'
 import { usersApi } from '../../../api/usersApi'
 import { useAuthStore } from '../../../app/store'
 
@@ -73,34 +74,17 @@ export default function EditProfileForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <div>
-        <label className="mb-1 block text-sm font-medium">Full name</label>
-        <input
-          type="text"
-          {...register('fullName')}
-          className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-brand dark:border-gray-700"
-        />
-        {errors.fullName && <p className="mt-1 text-xs text-danger">{errors.fullName.message}</p>}
-      </div>
-
-      <div>
-        <label className="mb-1 block text-sm font-medium">Username</label>
-        <input
-          type="text"
-          {...register('username')}
-          className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-brand dark:border-gray-700"
-        />
-        {errors.username && <p className="mt-1 text-xs text-danger">{errors.username.message}</p>}
-      </div>
+      <Input label="Full name" type="text" error={errors.fullName?.message} {...register('fullName')} />
+      <Input label="Username" type="text" error={errors.username?.message} {...register('username')} />
 
       <div>
         <label className="mb-1 block text-sm font-medium">Bio</label>
         <textarea
           rows={3}
           {...register('bio')}
-          className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-brand dark:border-gray-700"
+          className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-sm outline-none transition-colors duration-150 focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/20 dark:border-gray-700"
         />
-        {errors.bio && <p className="mt-1 text-xs text-danger">{errors.bio.message}</p>}
+        {errors.bio && <p className="mt-1 animate-fade-in text-xs text-danger">{errors.bio.message}</p>}
       </div>
 
       <Button type="submit" isLoading={updateMutation.isPending} className="self-start">

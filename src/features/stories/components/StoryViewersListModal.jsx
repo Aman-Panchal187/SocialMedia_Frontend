@@ -1,8 +1,11 @@
 import { formatDistanceToNowStrict } from 'date-fns'
 import Skeleton from 'react-loading-skeleton'
 import Modal from '../../../components/common/Modal'
+import ModalHeader from '../../../components/common/ModalHeader'
 import Avatar from '../../../components/common/Avatar'
 import InfiniteScrollSentinel from '../../../components/common/InfiniteScrollSentinel'
+import EmptyState from '../../../components/common/EmptyState'
+import { EyeIcon } from '../../../components/common/icons'
 import { useStoryViewers } from '../hooks/useStoryViewers'
 
 export default function StoryViewersListModal({ storyId, isOpen, onClose }) {
@@ -10,10 +13,9 @@ export default function StoryViewersListModal({ storyId, isOpen, onClose }) {
   const viewers = viewersQuery.data?.pages.flatMap((page) => page.data.items) ?? []
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-sm">
+    <Modal isOpen={isOpen} onClose={onClose} ariaLabel="Viewers" className="overflow-hidden p-0 max-w-sm">
+      <ModalHeader title="Viewers" onClose={onClose} />
       <div className="max-h-[28rem] overflow-y-auto p-4">
-        <h2 className="mb-3 text-sm font-semibold">Viewers</h2>
-
         {viewersQuery.isLoading && (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, index) => (
@@ -26,7 +28,7 @@ export default function StoryViewersListModal({ storyId, isOpen, onClose }) {
         )}
 
         {!viewersQuery.isLoading && viewers.length === 0 && (
-          <p className="py-10 text-center text-sm text-gray-500">No views yet</p>
+          <EmptyState icon={EyeIcon} title="No views yet" />
         )}
 
         <div className="flex flex-col gap-3">

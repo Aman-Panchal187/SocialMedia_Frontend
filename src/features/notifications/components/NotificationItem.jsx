@@ -51,11 +51,13 @@ export default function NotificationItem({ notification, onOpenPost, onMarkRead 
           {formatDistanceToNowStrict(new Date(createdAt))} ago
         </span>
       </p>
-      {!isRead && <span className="h-2 w-2 shrink-0 rounded-full bg-brand" aria-label="Unread" />}
+      {!isRead && (
+        <span className="h-2 w-2 shrink-0 animate-scale-in rounded-full bg-brand motion-reduce:animate-none" aria-label="Unread" />
+      )}
     </div>
   )
 
-  const rowClassName = `flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${
+  const rowClassName = `flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors duration-150 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/50 dark:hover:bg-gray-800 ${
     isRead ? '' : 'bg-brand/5'
   }`
 
@@ -67,7 +69,7 @@ export default function NotificationItem({ notification, onOpenPost, onMarkRead 
         <Link
           to={`/${actor?.username}`}
           onClick={() => !isRead && onMarkRead(notification.id)}
-          className="rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="rounded-lg transition-colors duration-150 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/50 dark:hover:bg-gray-800"
         >
           {avatarAndText}
         </Link>

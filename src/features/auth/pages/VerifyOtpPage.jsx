@@ -43,23 +43,25 @@ export default function VerifyOtpPage() {
       <div className="mb-6 flex justify-center">
         <Logo iconClassName="h-12 w-12" wordmarkClassName="text-2xl" />
       </div>
-      <h1 className="mb-2 text-center text-2xl font-bold">Verify your email</h1>
-      <p className="mb-6 text-center text-sm text-gray-500">
-        Enter the 6-digit code sent to {email}
-      </p>
-      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
-        <OtpInput length={6} value={code} onChange={setCode} />
-        <Button type="submit" isLoading={isVerifyOtpLoading} className="w-full">
-          Verify
-        </Button>
-      </form>
-      <button
-        type="button"
-        onClick={handleResend}
-        className="mt-4 text-center text-sm font-semibold text-brand"
-      >
-        Resend code
-      </button>
+      <div className="animate-scale-in rounded-2xl border border-gray-200 bg-white p-6 shadow-card dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+        <h1 className="mb-2 text-center text-2xl font-bold">Verify your email</h1>
+        <p className="mb-6 text-center text-sm text-gray-500">
+          Enter the 6-digit code sent to {email}
+        </p>
+        <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
+          <OtpInput length={6} value={code} onChange={setCode} />
+          <Button type="submit" isLoading={isVerifyOtpLoading} className="w-full">
+            Verify
+          </Button>
+        </form>
+        <button
+          type="button"
+          onClick={handleResend}
+          className="mt-4 w-full text-center text-sm font-semibold text-brand transition-colors hover:text-brand-hover"
+        >
+          Resend code
+        </button>
+      </div>
     </div>
   )
 }

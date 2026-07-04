@@ -79,7 +79,7 @@ export default function MessageComposer({ conversationId, onTyping }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2 border-t border-gray-200 p-3 dark:border-gray-800">
       {attachment && (
-        <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm dark:bg-gray-800">
+        <div className="flex animate-scale-in items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm dark:bg-gray-800">
           {attachment.type.startsWith('image/') ? (
             <img src={URL.createObjectURL(attachment)} alt="preview" className="h-10 w-10 rounded object-cover" />
           ) : (
@@ -90,7 +90,7 @@ export default function MessageComposer({ conversationId, onTyping }) {
             type="button"
             onClick={clearAttachment}
             aria-label="Remove attachment"
-            className="rounded-full p-1 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="rounded-full p-1 text-gray-500 transition-transform duration-150 hover:bg-gray-200 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 dark:hover:bg-gray-700 motion-reduce:transition-none motion-reduce:active:scale-100"
           >
             <CloseIcon className="h-4 w-4" />
           </button>
@@ -109,7 +109,7 @@ export default function MessageComposer({ conversationId, onTyping }) {
         <label
           htmlFor="chat-attachment-input"
           aria-label="Attach a file"
-          className="flex shrink-0 cursor-pointer items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+          className="flex shrink-0 cursor-pointer items-center justify-center rounded-full p-2 text-gray-500 transition-[background-color,transform] duration-150 hover:bg-gray-100 active:scale-90 focus-within:ring-2 focus-within:ring-brand/50 dark:text-gray-400 dark:hover:bg-gray-800 motion-reduce:transition-none motion-reduce:active:scale-100"
         >
           <PaperclipIcon />
         </label>
@@ -124,13 +124,13 @@ export default function MessageComposer({ conversationId, onTyping }) {
           onBlur={stopTyping}
           placeholder="Message…"
           disabled={Boolean(attachment)}
-          className="flex-1 rounded-full border border-gray-300 bg-transparent px-4 py-2 text-sm outline-none focus:border-brand disabled:opacity-50 dark:border-gray-700"
+          className="flex-1 rounded-full border border-gray-300 bg-transparent px-4 py-2 text-sm outline-none transition-colors duration-150 focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/20 disabled:opacity-50 dark:border-gray-700"
         />
         <button
           type="submit"
           disabled={sendMessageMutation.isPending || (!attachment && !text.trim())}
           aria-label="Send message"
-          className="flex shrink-0 items-center justify-center rounded-full bg-brand p-2.5 text-white transition-opacity hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex shrink-0 items-center justify-center rounded-full bg-brand p-2.5 text-white transition-[background-color,transform,opacity] duration-150 hover:bg-brand-hover active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transition-none motion-reduce:active:scale-100"
         >
           <SendIcon />
         </button>

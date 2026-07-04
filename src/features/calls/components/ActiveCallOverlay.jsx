@@ -137,7 +137,7 @@ export default function ActiveCallOverlay() {
             autoPlay
             playsInline
             muted
-            className="absolute bottom-4 right-4 h-20 w-16 rounded-lg border border-white/30 object-cover shadow-lg sm:h-32 sm:w-24"
+            className="absolute bottom-4 right-4 h-20 w-16 rounded-lg border border-white/30 object-cover shadow-popover sm:h-32 sm:w-24"
           />
           {phase === 'connecting' && (
             <p className="absolute left-1/2 top-4 -translate-x-1/2 text-sm text-white/80">Connecting…</p>
@@ -165,7 +165,10 @@ export default function ActiveCallOverlay() {
           type="button"
           onClick={toggleMute}
           aria-label={isMuted ? 'Unmute' : 'Mute'}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30"
+          aria-pressed={isMuted}
+          className={`flex h-12 w-12 items-center justify-center rounded-full transition-[background-color,transform] duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:ring-white/70 motion-reduce:transition-none motion-reduce:active:scale-100 ${
+            isMuted ? 'bg-white text-black' : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
         >
           <MicIcon muted={isMuted} />
         </button>
@@ -174,7 +177,10 @@ export default function ActiveCallOverlay() {
             type="button"
             onClick={toggleCamera}
             aria-label={isCameraOff ? 'Turn camera on' : 'Turn camera off'}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30"
+            aria-pressed={isCameraOff}
+            className={`flex h-12 w-12 items-center justify-center rounded-full transition-[background-color,transform] duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:ring-white/70 motion-reduce:transition-none motion-reduce:active:scale-100 ${
+              isCameraOff ? 'bg-white text-black' : 'bg-white/20 text-white hover:bg-white/30'
+            }`}
           >
             <CameraIcon off={isCameraOff} />
           </button>
@@ -184,7 +190,7 @@ export default function ActiveCallOverlay() {
           type="button"
           onClick={hangUp}
           aria-label="Hang up"
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-danger text-white hover:scale-105"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-danger text-white transition-transform duration-150 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:ring-danger/50 motion-reduce:transition-none"
         >
           <PhoneIcon className="h-6 w-6 rotate-[135deg]" />
         </button>

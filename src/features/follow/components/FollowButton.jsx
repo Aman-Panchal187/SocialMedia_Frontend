@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { followApi } from '../../../api/followApi'
 import { useAuthStore } from '../../../app/store'
+import Button from '../../../components/common/Button'
 import ConfirmDialog from '../../../components/common/ConfirmDialog'
 
 // Nudges a cached profile query's follower/following count without waiting on
@@ -74,14 +75,15 @@ export default function FollowButton({ username, isFollowing, isFollowRequested,
   if (effectiveIsFollowing) {
     return (
       <>
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          isLoading={unfollowMutation.isPending}
           disabled={isPending}
           onClick={() => setIsConfirmingUnfollow(true)}
-          className="rounded-lg bg-gray-100 px-4 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
         >
           Following
-        </button>
+        </Button>
         <ConfirmDialog
           isOpen={isConfirmingUnfollow}
           onClose={() => setIsConfirmingUnfollow(false)}
@@ -96,25 +98,27 @@ export default function FollowButton({ username, isFollowing, isFollowRequested,
 
   if (effectiveIsFollowRequested) {
     return (
-      <button
+      <Button
         type="button"
+        variant="secondary"
+        isLoading={unfollowMutation.isPending}
         disabled={isPending}
         onClick={() => unfollowMutation.mutate(false)}
-        className="rounded-lg bg-gray-100 px-4 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
       >
         Requested
-      </button>
+      </Button>
     )
   }
 
   return (
-    <button
+    <Button
       type="button"
+      variant="primary"
+      isLoading={followMutation.isPending}
       disabled={isPending}
       onClick={() => followMutation.mutate()}
-      className="rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50"
     >
       Follow
-    </button>
+    </Button>
   )
 }

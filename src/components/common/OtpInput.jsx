@@ -51,7 +51,7 @@ export default function OtpInput({ length = 6, value, onChange }) {
           onChange={(e) => handleChange(index, e)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           aria-label={`Digit ${index + 1} of ${length}`}
-          className="h-12 w-10 rounded-lg border border-gray-300 text-center text-lg font-semibold focus:border-brand focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+          className="h-12 w-10 rounded-lg border border-gray-300 text-center text-lg font-semibold transition-[border-color,box-shadow] duration-150 focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
         />
       ))}
     </div>

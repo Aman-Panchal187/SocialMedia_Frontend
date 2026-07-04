@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import clsx from 'clsx'
 
 const SIZE_CLASSES = {
@@ -9,9 +10,11 @@ const SIZE_CLASSES = {
 }
 
 export default function Avatar({ src, alt = '', size = 'md', className }) {
+  const [hasError, setHasError] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
   const sizeClass = SIZE_CLASSES[size] || SIZE_CLASSES.md
 
-  if (!src) {
+  if (!src || hasError) {
     return (
       <div
         className={clsx(
@@ -29,7 +32,14 @@ export default function Avatar({ src, alt = '', size = 'md', className }) {
     <img
       src={src}
       alt={alt}
-      className={clsx('rounded-full object-cover', sizeClass, className)}
+      onLoad={() => setIsLoaded(true)}
+      onError={() => setHasError(true)}
+      className={clsx(
+        'rounded-full object-cover transition-opacity duration-300 motion-reduce:transition-none',
+        isLoaded ? 'opacity-100' : 'opacity-0',
+        sizeClass,
+        className
+      )}
     />
   )
 }

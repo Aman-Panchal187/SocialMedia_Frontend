@@ -62,7 +62,10 @@ export default function PostDetailModal({ postId, isOpen, onClose }) {
 
           <div className="flex w-full min-h-0 flex-1 flex-col sm:w-[360px] sm:flex-none sm:shrink-0 sm:border-l sm:border-gray-200 sm:dark:border-gray-800">
             <div className="flex shrink-0 items-center justify-between gap-2 border-b border-gray-200 p-3 dark:border-gray-800">
-              <Link to={`/${post.author?.username}`} className="flex items-center gap-2">
+              <Link
+                to={`/${post.author?.username}`}
+                className="flex items-center gap-2 transition-opacity hover:opacity-80"
+              >
                 <Avatar src={post.author?.avatarUrl} alt={post.author?.username} size="sm" />
                 <span className="text-sm font-semibold">{post.author?.username}</span>
               </Link>
@@ -70,7 +73,7 @@ export default function PostDetailModal({ postId, isOpen, onClose }) {
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+                className="rounded-full p-1 text-gray-400 transition-[background-color,transform] duration-150 hover:bg-gray-100 hover:text-gray-600 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 dark:hover:bg-gray-800 motion-reduce:transition-none motion-reduce:active:scale-100"
               >
                 <CloseIcon />
               </button>

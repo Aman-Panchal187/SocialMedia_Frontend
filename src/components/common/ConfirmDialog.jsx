@@ -27,7 +27,8 @@ export default function ConfirmDialog({
           disabled={isConfirming}
           onClick={onConfirm}
           className={clsx(
-            'border-b border-gray-200 py-3 text-sm font-semibold disabled:opacity-50 dark:border-gray-800',
+            'border-b border-gray-200 py-3 text-sm font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/50',
             destructive
               ? 'text-danger hover:bg-gray-50 dark:hover:bg-gray-800'
               : 'text-brand hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -38,7 +39,7 @@ export default function ConfirmDialog({
         <button
           type="button"
           onClick={onClose}
-          className="py-3 text-sm text-gray-900 hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-gray-800"
+          className="py-3 text-sm text-gray-900 transition-colors duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/50 dark:text-gray-100 dark:hover:bg-gray-800"
         >
           {cancelLabel}
         </button>

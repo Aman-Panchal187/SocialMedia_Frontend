@@ -93,12 +93,12 @@ export default function Modal({ isOpen, onClose, children, className = '', ariaL
             aria-modal="true"
             aria-label={ariaLabel || 'Dialog'}
             tabIndex={-1}
-            className={`max-h-[90vh] w-full max-w-full overflow-y-auto rounded-xl bg-white dark:bg-gray-900 ${className}`}
+            className={`max-h-[90vh] w-full max-w-full overflow-y-auto rounded-xl bg-white shadow-modal dark:bg-gray-900 ${className}`}
             onClick={(e) => e.stopPropagation()}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
+            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             {children}
           </motion.div>

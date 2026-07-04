@@ -30,13 +30,16 @@ export default function IncomingCallModal() {
         transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
       >
         <motion.div
-          className="w-full max-w-xs rounded-xl bg-white p-6 text-center shadow-lg dark:bg-gray-900"
+          className="w-full max-w-xs rounded-xl bg-white p-6 text-center shadow-modal dark:bg-gray-900"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
         >
-          <Avatar src={peerInfo?.avatarUrl} alt={peerInfo?.username} size="xl" className="mx-auto" />
+          <div className="relative mx-auto w-fit">
+            <span className="absolute inset-0 animate-ping rounded-full bg-brand/30 motion-reduce:animate-none" />
+            <Avatar src={peerInfo?.avatarUrl} alt={peerInfo?.username} size="xl" className="relative" />
+          </div>
           <p className="mt-4 text-base font-semibold">{peerInfo?.fullName || peerInfo?.username}</p>
           <p className="mt-1 text-sm text-gray-500">
             Incoming {callType === 'video' ? 'video' : 'voice'} call…
@@ -46,7 +49,7 @@ export default function IncomingCallModal() {
               type="button"
               onClick={rejectCall}
               aria-label="Decline call"
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-danger text-white transition-transform hover:scale-105"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-danger text-white transition-transform duration-150 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-danger/50 motion-reduce:transition-none"
             >
               <PhoneIcon className="h-6 w-6 rotate-[135deg]" />
             </button>
@@ -55,7 +58,7 @@ export default function IncomingCallModal() {
               type="button"
               onClick={acceptCall}
               aria-label="Accept call"
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white transition-transform hover:scale-105"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white transition-transform duration-150 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-500/50 motion-reduce:transition-none"
             >
               <CheckIcon className="h-6 w-6" />
             </button>

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
+import { motion } from 'framer-motion'
 import { postsApi } from '../../../api/postsApi'
 import { BookmarkIcon } from '../../../components/common/icons'
 import {
@@ -69,9 +70,20 @@ export default function SaveButton({ postId, isSaved, postQueryKey, className })
       onClick={() => mutation.mutate(!isSaved)}
       disabled={mutation.isPending}
       aria-label={isSaved ? 'Unsave' : 'Save'}
-      className={clsx('text-gray-900 dark:text-gray-100', className)}
+      className={clsx(
+        'rounded-full text-gray-900 transition-transform duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 dark:text-gray-100 motion-reduce:transition-none motion-reduce:active:scale-100',
+        className
+      )}
     >
-      <BookmarkIcon filled={isSaved} />
+      <motion.span
+        key={isSaved ? 'saved' : 'unsaved'}
+        initial={isSaved ? { scale: 1 } : false}
+        animate={isSaved ? { scale: [1, 1.25, 1] } : { scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="inline-block"
+      >
+        <BookmarkIcon filled={isSaved} />
+      </motion.span>
     </button>
   )
 }
