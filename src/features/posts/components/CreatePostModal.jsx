@@ -27,8 +27,10 @@ export default function CreatePostModal({ isOpen, onClose }) {
     onError: () => toast.error('Failed to create post'),
   })
 
-  // Best-effort only: a failed/unconfigured AI provider must never surface an
-  // error to the user, it should just look like no suggestion was offered.
+  // An unconfigured AI provider resolves successfully with a null suggestion
+  // (handled below, no error) — but an actual provider failure rejects, and
+  // the axios interceptor's global error toast surfaces it to the user; this
+  // handler just resets local state so a stale suggestion doesn't linger.
   const suggestMutation = useMutation({
     mutationFn: aiApi.suggestCaption,
     onSuccess: (res) => setSuggestion(res.data?.suggestion || null),
