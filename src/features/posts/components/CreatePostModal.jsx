@@ -135,7 +135,7 @@ export default function CreatePostModal({ isOpen, onClose }) {
               <span className="text-xs text-gray-400">JPG, PNG, GIF, or MP4 — one file at a time</span>
             </button>
           ) : (
-            <div className="group relative mx-auto aspect-square w-full max-w-xs overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+            <div className="group relative mx-auto h-56 w-full max-w-xs shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
               {file.type.startsWith('video/') ? (
                 <video src={URL.createObjectURL(file)} className="h-full w-full object-cover" controls />
               ) : (
