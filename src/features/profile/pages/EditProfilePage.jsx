@@ -7,13 +7,23 @@ import { useAuthStore } from '../../../app/store'
 
 export default function EditProfilePage() {
   const user = useAuthStore((state) => state.user)
+  const setAuth = useAuthStore((state) => state.setAuth)
   const queryClient = useQueryClient()
 
   const privacyMutation = useMutation({
     mutationFn: usersApi.updatePrivacy,
-    onSuccess: () => {
+    onSuccess: (res) => {
+      // The API responds with { data: { user: {...} } } — read isPrivate off
+      // the nested user, and write it back into authStore so this toggle's
+      // state survives a refresh instead of reverting until some other fetch
+      // happens to re-sync it.
+      const updatedUser = res.data.user
       toast.success('Privacy setting updated')
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      setAuth({ user: { ...user, ...updatedUser } })
+      queryClient.setQueryData(['profile', user.username], (old) =>
+        old ? { ...old, data: { ...old.data, ...updatedUser } } : old
+      )
+      queryClient.invalidateQueries({ queryKey: ['profile', user.username] })
     },
   })
 

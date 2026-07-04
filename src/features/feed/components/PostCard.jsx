@@ -7,7 +7,7 @@ import LikeButton from '../../posts/components/LikeButton'
 import SaveButton from '../../posts/components/SaveButton'
 import PostDetailModal from '../../posts/components/PostDetailModal'
 
-export default function PostCard({ post, feedQueryKey }) {
+export default function PostCard({ post }) {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
   return (
@@ -39,12 +39,7 @@ export default function PostCard({ post, feedQueryKey }) {
       )}
 
       <div className="flex items-center gap-4 p-3">
-        <LikeButton
-          postId={post.id}
-          isLiked={post.isLiked}
-          likeCount={post.likeCount}
-          feedQueryKey={feedQueryKey}
-        />
+        <LikeButton postId={post.id} isLiked={post.isLiked} likeCount={post.likeCount} />
         <button
           type="button"
           onClick={() => setIsDetailOpen(true)}
@@ -54,12 +49,7 @@ export default function PostCard({ post, feedQueryKey }) {
           <ChatBubbleIcon />
           {post.commentCount > 0 && <span className="text-sm font-medium">{post.commentCount}</span>}
         </button>
-        <SaveButton
-          postId={post.id}
-          isSaved={post.isSaved}
-          feedQueryKey={feedQueryKey}
-          className="ml-auto"
-        />
+        <SaveButton postId={post.id} isSaved={post.isSaved} className="ml-auto" />
       </div>
 
       {post.caption && (

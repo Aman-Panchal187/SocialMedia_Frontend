@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import OtpInput from '../../../components/common/OtpInput'
 import Button from '../../../components/common/Button'
+import Logo from '../../../components/common/Logo'
 import { useAuth } from '../hooks/useAuth'
 
 export default function VerifyOtpPage() {
@@ -39,6 +40,9 @@ export default function VerifyOtpPage() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4">
+      <div className="mb-6 flex justify-center">
+        <Logo iconClassName="h-12 w-12" wordmarkClassName="text-2xl" />
+      </div>
       <h1 className="mb-2 text-center text-2xl font-bold">Verify your email</h1>
       <p className="mb-6 text-center text-sm text-gray-500">
         Enter the 6-digit code sent to {email}

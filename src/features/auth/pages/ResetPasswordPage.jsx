@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 import Button from '../../../components/common/Button'
+import Logo from '../../../components/common/Logo'
 import { useAuth } from '../hooks/useAuth'
 
 const resetPasswordSchema = z.object({
@@ -39,6 +40,9 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4">
+      <div className="mb-6 flex justify-center">
+        <Logo iconClassName="h-12 w-12" wordmarkClassName="text-2xl" />
+      </div>
       <h1 className="mb-2 text-center text-2xl font-bold">Reset password</h1>
       <p className="mb-6 text-center text-sm text-gray-500">Enter the code sent to {email}</p>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">

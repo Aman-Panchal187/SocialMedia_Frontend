@@ -3,17 +3,18 @@ import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
 import { postsApi } from '../../../api/postsApi'
 import { HeartIcon } from '../../../components/common/icons'
-import { patchPostInCache } from '../postCacheUtils'
+import { patchPostInCache, FEED_QUERY_KEY, SAVED_POSTS_QUERY_KEY } from '../postCacheUtils'
 
-export default function LikeButton({ postId, isLiked, likeCount, feedQueryKey, postQueryKey }) {
+export default function LikeButton({ postId, isLiked, likeCount, postQueryKey }) {
   const queryClient = useQueryClient()
-  const queryKeys = [feedQueryKey, postQueryKey].filter(Boolean)
+  // The feed and saved-posts lists are always potentially cached regardless of
+  // where this button is rendered — a like/unlike must reach both, not just
+  // whatever specific list this instance happens to be inside of.
+  const queryKeys = [FEED_QUERY_KEY, SAVED_POSTS_QUERY_KEY, postQueryKey].filter(Boolean)
 
   const mutation = useMutation({
     mutationFn: (nextLiked) => (nextLiked ? postsApi.likePost(postId) : postsApi.unlikePost(postId)),
     onMutate: async (nextLiked) => {
-      if (queryKeys.length === 0) return
-
       await Promise.all(queryKeys.map((key) => queryClient.cancelQueries({ queryKey: key })))
       const previousByKey = queryKeys.map((key) => [key, queryClient.getQueryData(key)])
 

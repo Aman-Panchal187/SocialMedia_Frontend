@@ -5,6 +5,7 @@ import clsx from 'clsx'
 import { usersApi } from '../../../api/usersApi'
 import { postsApi } from '../../../api/postsApi'
 import { GridIcon, BookmarkIcon } from '../../../components/common/icons'
+import { SAVED_POSTS_QUERY_KEY } from '../../posts/postCacheUtils'
 import ProfileHeader from '../components/ProfileHeader'
 import PostGrid from '../../posts/components/PostGrid'
 
@@ -71,7 +72,7 @@ export default function ProfilePage() {
           <div className="p-4">
             {tab === 'saved' ? (
               <PostGrid
-                queryKey={['savedPosts']}
+                queryKey={SAVED_POSTS_QUERY_KEY}
                 queryFn={postsApi.getSavedPosts}
                 emptyMessage="No saved posts yet"
               />

@@ -39,9 +39,23 @@ export default function EditProfileForm() {
   const updateMutation = useMutation({
     mutationFn: usersApi.updateMe,
     onSuccess: (res) => {
+      // The API responds with { data: { user: {...} } } — the updated fields
+      // live under a nested "user" key, not directly on res.data.
+      const updatedUser = res.data.user
       toast.success('Profile updated')
-      setAuth({ user: { ...user, ...res.data } })
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      setAuth({ user: { ...user, ...updatedUser } })
+      // Patch the cached profile query directly rather than only invalidating —
+      // invalidation alone only refetches queries with an active observer, but
+      // this page (edit-profile) isn't the profile page itself, so nothing is
+      // mounted yet to catch it; the next visit would otherwise show stale
+      // cached data until a manual refresh.
+      queryClient.setQueryData(['profile', user.username], (old) =>
+        old ? { ...old, data: { ...old.data, ...updatedUser } } : old
+      )
+      if (updatedUser.username && updatedUser.username !== user.username) {
+        queryClient.invalidateQueries({ queryKey: ['profile', updatedUser.username] })
+      }
+      queryClient.invalidateQueries({ queryKey: ['profile', user.username] })
     },
     onError: (error) => {
       const details = error?.response?.data?.error?.details

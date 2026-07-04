@@ -26,3 +26,36 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/* App-wide custom scrollbar — thin, rounded, theme-aware — replacing the
+   default browser scrollbar everywhere content scrolls (modals, chat panes,
+   feeds, etc.) instead of styling each scrollable container individually. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-text-secondary);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}

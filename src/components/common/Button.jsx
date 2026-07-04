@@ -5,7 +5,7 @@ const VARIANT_CLASSES = {
   secondary:
     'bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
   danger: 'bg-danger text-white hover:opacity-90 disabled:opacity-50',
-  ghost: 'bg-transparent text-brand hover:underline',
+  ghost: 'bg-transparent text-brand hover:text-brand-hover',
 }
 
 export default function Button({

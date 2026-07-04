@@ -2,9 +2,8 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { postsApi } from '../../../api/postsApi'
 import SkeletonPostCard from '../../../components/common/SkeletonPostCard'
 import InfiniteScrollSentinel from '../../../components/common/InfiniteScrollSentinel'
+import { FEED_QUERY_KEY } from '../../posts/postCacheUtils'
 import PostCard from './PostCard'
-
-const FEED_QUERY_KEY = ['feed']
 
 export default function FeedList() {
   const feedQuery = useInfiniteQuery({
@@ -33,7 +32,7 @@ export default function FeedList() {
   return (
     <div className="mx-auto max-w-lg py-4">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} feedQueryKey={FEED_QUERY_KEY} />
+        <PostCard key={post.id} post={post} />
       ))}
       <InfiniteScrollSentinel
         enabled={feedQuery.hasNextPage && !feedQuery.isFetchingNextPage}

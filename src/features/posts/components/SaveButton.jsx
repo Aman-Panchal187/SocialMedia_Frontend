@@ -3,24 +3,53 @@ import toast from 'react-hot-toast'
 import clsx from 'clsx'
 import { postsApi } from '../../../api/postsApi'
 import { BookmarkIcon } from '../../../components/common/icons'
-import { patchPostInCache } from '../postCacheUtils'
+import {
+  patchPostInCache,
+  removePostFromCache,
+  findPostInCache,
+  insertPostIntoCache,
+  FEED_QUERY_KEY,
+  SAVED_POSTS_QUERY_KEY,
+} from '../postCacheUtils'
 
-export default function SaveButton({ postId, isSaved, feedQueryKey, postQueryKey, className }) {
+export default function SaveButton({ postId, isSaved, postQueryKey, className }) {
   const queryClient = useQueryClient()
-  const queryKeys = [feedQueryKey, postQueryKey].filter(Boolean)
+  // The feed and saved-posts lists are always potentially cached regardless of
+  // where this button is rendered — a save/unsave must reach both, not just
+  // whatever specific list this instance happens to be inside of.
+  const patchKeys = [FEED_QUERY_KEY, postQueryKey].filter(Boolean)
+  const allKeys = [...patchKeys, SAVED_POSTS_QUERY_KEY]
 
   const mutation = useMutation({
     mutationFn: (nextSaved) => (nextSaved ? postsApi.savePost(postId) : postsApi.unsavePost(postId)),
     onMutate: async (nextSaved) => {
-      if (queryKeys.length === 0) return
+      await Promise.all(allKeys.map((key) => queryClient.cancelQueries({ queryKey: key })))
+      const previousByKey = allKeys.map((key) => [key, queryClient.getQueryData(key)])
 
-      await Promise.all(queryKeys.map((key) => queryClient.cancelQueries({ queryKey: key })))
-      const previousByKey = queryKeys.map((key) => [key, queryClient.getQueryData(key)])
-
-      for (const key of queryKeys) {
+      for (const key of patchKeys) {
         queryClient.setQueryData(key, (old) =>
           patchPostInCache(old, postId, () => ({ isSaved: nextSaved }))
         )
+      }
+
+      if (!nextSaved) {
+        // The saved-posts list only shows a post because it's saved —
+        // unsaving must remove it from that list outright, not just flip its icon.
+        queryClient.setQueryData(SAVED_POSTS_QUERY_KEY, (old) => removePostFromCache(old, postId))
+      } else {
+        // Saving should show up in the saved-posts list immediately too —
+        // pull the full post from wherever it's already cached so it doesn't
+        // wait on a refetch to appear there.
+        let fullPost
+        for (const key of patchKeys) {
+          fullPost = findPostInCache(queryClient.getQueryData(key), postId)
+          if (fullPost) break
+        }
+        if (fullPost) {
+          queryClient.setQueryData(SAVED_POSTS_QUERY_KEY, (old) =>
+            insertPostIntoCache(old, { ...fullPost, isSaved: true })
+          )
+        }
       }
 
       return { previousByKey }
@@ -30,7 +59,7 @@ export default function SaveButton({ postId, isSaved, feedQueryKey, postQueryKey
       toast.error('Failed to update saved post')
     },
     onSettled: () => {
-      queryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }))
+      allKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }))
     },
   })
 

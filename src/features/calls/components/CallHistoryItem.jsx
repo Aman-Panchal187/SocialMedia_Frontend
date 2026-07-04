@@ -1,16 +1,12 @@
 import { formatDistanceToNowStrict } from 'date-fns'
 import Avatar from '../../../components/common/Avatar'
+import { PhoneIcon, VideoCameraIcon, ArrowUpRightIcon, ArrowDownLeftIcon } from '../../../components/common/icons'
 import { callStatusLabel, formatCallDuration, isMissedCall } from '../callHelpers'
 import { useCall } from '../CallContext'
 
-const DIRECTION_ICON = {
-  outgoing: '↗',
-  incoming: '↙',
-}
-
-const TYPE_ICON = {
-  voice: '📞',
-  video: '🎥',
+const TYPE_ICONS = {
+  voice: PhoneIcon,
+  video: VideoCameraIcon,
 }
 
 export default function CallHistoryItem({ call }) {
@@ -18,15 +14,18 @@ export default function CallHistoryItem({ call }) {
   const { otherUser, direction, callType, status, durationSec, createdAt } = call
   const missed = isMissedCall(status)
   const duration = status === 'completed' ? formatCallDuration(durationSec) : null
+  const DirectionIcon = direction === 'outgoing' ? ArrowUpRightIcon : ArrowDownLeftIcon
+  const TypeIcon = TYPE_ICONS[callType] || PhoneIcon
 
   return (
     <div className="flex items-center gap-3 rounded-lg p-2">
       <Avatar src={otherUser?.avatarUrl} alt={otherUser?.username} size="md" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{otherUser?.username}</p>
-        <p className={`truncate text-xs ${missed ? 'text-danger' : 'text-gray-500'}`}>
-          <span aria-hidden="true">{DIRECTION_ICON[direction] || ''}</span>{' '}
-          <span aria-hidden="true">{TYPE_ICON[callType] || ''}</span>{' '}
+        <p
+          className={`flex items-center gap-1 truncate text-xs ${missed ? 'text-danger' : 'text-gray-500'}`}
+        >
+          <DirectionIcon className="h-3 w-3 shrink-0" />
           {callStatusLabel(status)}
           {duration ? ` · ${duration}` : ''}
         </p>
@@ -42,9 +41,9 @@ export default function CallHistoryItem({ call }) {
           onClick={() => startCall(otherUser, callType)}
           disabled={phase !== 'idle'}
           aria-label={`Call ${otherUser?.username}`}
-          className="rounded-full p-1 text-base hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800"
+          className="rounded-full p-1.5 text-brand hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800"
         >
-          {TYPE_ICON[callType] || '📞'}
+          <TypeIcon className="h-5 w-5" />
         </button>
       </div>
     </div>

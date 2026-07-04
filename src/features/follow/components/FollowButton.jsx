@@ -2,10 +2,26 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { followApi } from '../../../api/followApi'
+import { useAuthStore } from '../../../app/store'
+import ConfirmDialog from '../../../components/common/ConfirmDialog'
+
+// Nudges a cached profile query's follower/following count without waiting on
+// a refetch — the count is only ever visible on a profile page that's likely
+// not the one that triggered the mutation (e.g. following someone from search
+// results), so an invalidate alone wouldn't show up until that page reloads.
+function bumpProfileCount(queryClient, targetQueryKey, field, delta) {
+  if (!targetQueryKey) return
+  queryClient.setQueryData(targetQueryKey, (old) =>
+    old ? { ...old, data: { ...old.data, [field]: Math.max(0, (old.data[field] ?? 0) + delta) } } : old
+  )
+}
 
 export default function FollowButton({ username, isFollowing, isFollowRequested, queryKey }) {
   const queryClient = useQueryClient()
+  const currentUsername = useAuthStore((state) => state.user?.username)
+  const ownProfileQueryKey = currentUsername ? ['profile', currentUsername] : null
   const [override, setOverride] = useState(null)
+  const [isConfirmingUnfollow, setIsConfirmingUnfollow] = useState(false)
 
   const followMutation = useMutation({
     mutationFn: () => followApi.follow(username),
@@ -18,13 +34,20 @@ export default function FollowButton({ username, isFollowing, isFollowRequested,
           old ? { ...old, data: { ...old.data, ...next } } : old
         )
       }
+      if (status === 'accepted') {
+        bumpProfileCount(queryClient, queryKey, 'followerCount', 1)
+        bumpProfileCount(queryClient, ownProfileQueryKey, 'followingCount', 1)
+      }
     },
     onError: () => toast.error('Failed to follow user'),
   })
 
   const unfollowMutation = useMutation({
-    mutationFn: () => followApi.unfollow(username),
-    onSuccess: () => {
+    // wasFollowing distinguishes a real unfollow from cancelling a pending
+    // follow request on a private account — only the former ever counted
+    // toward followerCount/followingCount in the first place.
+    mutationFn: (wasFollowing) => followApi.unfollow(username).then((res) => ({ res, wasFollowing })),
+    onSuccess: ({ wasFollowing }) => {
       const next = { isFollowing: false, isFollowRequested: false }
       setOverride(next)
       if (queryKey) {
@@ -32,8 +55,16 @@ export default function FollowButton({ username, isFollowing, isFollowRequested,
           old ? { ...old, data: { ...old.data, ...next } } : old
         )
       }
+      if (wasFollowing) {
+        bumpProfileCount(queryClient, queryKey, 'followerCount', -1)
+        bumpProfileCount(queryClient, ownProfileQueryKey, 'followingCount', -1)
+      }
+      setIsConfirmingUnfollow(false)
     },
-    onError: () => toast.error('Failed to unfollow user'),
+    onError: () => {
+      toast.error('Failed to unfollow user')
+      setIsConfirmingUnfollow(false)
+    },
   })
 
   const isPending = followMutation.isPending || unfollowMutation.isPending
@@ -42,18 +73,24 @@ export default function FollowButton({ username, isFollowing, isFollowRequested,
 
   if (effectiveIsFollowing) {
     return (
-      <button
-        type="button"
-        disabled={isPending}
-        onClick={() => {
-          if (window.confirm(`Unfollow @${username}?`)) {
-            unfollowMutation.mutate()
-          }
-        }}
-        className="rounded-lg bg-gray-100 px-4 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
-      >
-        Following
-      </button>
+      <>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => setIsConfirmingUnfollow(true)}
+          className="rounded-lg bg-gray-100 px-4 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
+        >
+          Following
+        </button>
+        <ConfirmDialog
+          isOpen={isConfirmingUnfollow}
+          onClose={() => setIsConfirmingUnfollow(false)}
+          onConfirm={() => unfollowMutation.mutate(true)}
+          isConfirming={unfollowMutation.isPending}
+          title={`Unfollow @${username}?`}
+          confirmLabel="Unfollow"
+        />
+      </>
     )
   }
 
@@ -62,7 +99,7 @@ export default function FollowButton({ username, isFollowing, isFollowRequested,
       <button
         type="button"
         disabled={isPending}
-        onClick={() => unfollowMutation.mutate()}
+        onClick={() => unfollowMutation.mutate(false)}
         className="rounded-lg bg-gray-100 px-4 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
       >
         Requested

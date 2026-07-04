@@ -6,6 +6,7 @@ import CallsLink from '../../features/calls/components/CallsLink'
 import SearchLink from '../../features/search/components/SearchLink'
 import NavbarMenu from './NavbarMenu'
 import { PlusSquareIcon } from '../common/icons'
+import Logo from '../common/Logo'
 import { useAuthStore } from '../../app/store'
 
 export default function Navbar({ onCreateClick }) {
@@ -14,8 +15,8 @@ export default function Navbar({ onCreateClick }) {
   return (
     <header className="sticky top-0 z-40 hidden h-16 w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-black sm:block">
       <div className="mx-auto flex h-full max-w-5xl items-center justify-between px-4">
-        <Link to="/" className="text-xl font-bold">
-          PhotoSphere
+        <Link to="/">
+          <Logo />
         </Link>
         <div className="flex items-center gap-4">
           <ThemeToggle />
