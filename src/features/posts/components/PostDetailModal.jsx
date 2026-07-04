@@ -26,7 +26,7 @@ export default function PostDetailModal({ postId, isOpen, onClose }) {
       isOpen={isOpen}
       onClose={onClose}
       ariaLabel="Post"
-      className="overflow-hidden p-0 sm:max-w-4xl"
+      className="overflow-hidden p-0 sm:max-w-5xl"
     >
       {postQuery.isLoading && (
         <div className="flex flex-col gap-3 p-6 sm:flex-row">

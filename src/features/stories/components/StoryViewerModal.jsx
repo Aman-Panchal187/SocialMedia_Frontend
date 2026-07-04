@@ -4,6 +4,7 @@ import clsx from 'clsx'
 import { formatDistanceToNowStrict } from 'date-fns'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Avatar from '../../../components/common/Avatar'
+import { EyeIcon } from '../../../components/common/icons'
 import { useAuthStore } from '../../../app/store'
 import { useStoryViewer } from '../hooks/useStoryViewer'
 import StoryViewersListModal from './StoryViewersListModal'
@@ -169,9 +170,11 @@ export default function StoryViewerModal({ rings, initialAuthorIndex, initialSto
             <button
               type="button"
               onClick={() => setIsViewersListOpen(true)}
-              className="self-start text-sm text-white/80 underline"
+              aria-label="View viewers"
+              className="flex items-center gap-1.5 self-start text-sm text-white/80"
             >
-              {currentStory.viewCount ?? ''} viewers
+              <EyeIcon className="h-4 w-4" />
+              {currentStory.viewCount ?? 0}
             </button>
           ) : (
             <>

@@ -17,7 +17,7 @@ export default function FollowersListModal({ username, isOpen, onClose }) {
   const users = query.data?.pages.flatMap((page) => page.data.items) ?? []
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} className="sm:max-w-lg">
       <div className="max-h-[70vh] overflow-y-auto p-4">
         <h2 className="mb-3 text-center text-base font-semibold">Followers</h2>
         {query.isLoading && (

@@ -98,7 +98,7 @@ export default function AvatarUploader() {
         <input type="file" accept={ACCEPTED_TYPES.join(',')} onChange={handleFileChange} className="hidden" />
       </label>
 
-      <Modal isOpen={Boolean(imageSrc)} onClose={() => setImageSrc(null)}>
+      <Modal isOpen={Boolean(imageSrc)} onClose={() => setImageSrc(null)} className="sm:max-w-lg">
         <div className="flex flex-col gap-4 p-5">
           <div className="relative h-72 w-full bg-black">
             {imageSrc && (
