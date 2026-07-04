@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useUnreadCount } from '../hooks/useNotifications'
 import { useNotificationSocket } from '../hooks/useNotificationSocket'
+import { BellIcon } from '../../../components/common/icons'
 import NotificationPanel from './NotificationPanel'
 
 export default function NotificationBell() {
@@ -30,9 +31,9 @@ export default function NotificationBell() {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Notifications"
-        className="relative rounded-full p-2 text-xl hover:bg-gray-100 dark:hover:bg-gray-800"
+        className="relative rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
       >
-        🔔
+        <BellIcon />
         {unreadCount > 0 && (
           <span className="absolute right-0 top-0 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold text-white">
             {badgeLabel}

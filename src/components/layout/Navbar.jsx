@@ -5,6 +5,7 @@ import MessagesLink from '../../features/chat/components/MessagesLink'
 import CallsLink from '../../features/calls/components/CallsLink'
 import SearchLink from '../../features/search/components/SearchLink'
 import NavbarMenu from './NavbarMenu'
+import { PlusSquareIcon } from '../common/icons'
 import { useAuthStore } from '../../app/store'
 
 export default function Navbar({ onCreateClick }) {
@@ -23,9 +24,10 @@ export default function Navbar({ onCreateClick }) {
               <button
                 type="button"
                 onClick={onCreateClick}
-                className="text-sm font-semibold text-brand hover:underline"
+                aria-label="Create post"
+                className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
-                Create
+                <PlusSquareIcon />
               </button>
               <SearchLink />
               <NotificationBell />

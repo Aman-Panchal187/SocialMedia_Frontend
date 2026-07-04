@@ -43,7 +43,7 @@ export default function PostDetailModal({ postId, isOpen, onClose }) {
 
       {post && (
         <div className="flex h-[85vh] max-h-[640px] flex-col bg-white dark:bg-gray-900 sm:flex-row">
-          <div className="flex min-h-[220px] flex-1 items-center justify-center bg-black">
+          <div className="flex shrink-0 basis-1/2 items-center justify-center bg-black sm:min-h-[220px] sm:basis-auto sm:flex-1 sm:shrink">
             {post.media?.[0]?.mediaType === 'video' ? (
               <video
                 src={post.media?.[0]?.mediaUrl}
@@ -60,7 +60,7 @@ export default function PostDetailModal({ postId, isOpen, onClose }) {
             )}
           </div>
 
-          <div className="flex w-full min-h-0 flex-col sm:w-[360px] sm:shrink-0 sm:border-l sm:border-gray-200 sm:dark:border-gray-800">
+          <div className="flex w-full min-h-0 flex-1 flex-col sm:w-[360px] sm:flex-none sm:shrink-0 sm:border-l sm:border-gray-200 sm:dark:border-gray-800">
             <div className="flex shrink-0 items-center justify-between gap-2 border-b border-gray-200 p-3 dark:border-gray-800">
               <Link to={`/${post.author?.username}`} className="flex items-center gap-2">
                 <Avatar src={post.author?.avatarUrl} alt={post.author?.username} size="sm" />

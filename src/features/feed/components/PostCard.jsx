@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatDistanceToNowStrict } from 'date-fns'
 import Avatar from '../../../components/common/Avatar'
+import { ChatBubbleIcon } from '../../../components/common/icons'
 import LikeButton from '../../posts/components/LikeButton'
 import SaveButton from '../../posts/components/SaveButton'
 import PostDetailModal from '../../posts/components/PostDetailModal'
@@ -37,13 +38,22 @@ export default function PostCard({ post, feedQueryKey }) {
         </button>
       )}
 
-      <div className="flex items-center gap-3 p-3">
+      <div className="flex items-center gap-4 p-3">
         <LikeButton
           postId={post.id}
           isLiked={post.isLiked}
           likeCount={post.likeCount}
           feedQueryKey={feedQueryKey}
         />
+        <button
+          type="button"
+          onClick={() => setIsDetailOpen(true)}
+          aria-label="Comment"
+          className="flex items-center gap-1.5 text-gray-900 dark:text-gray-100"
+        >
+          <ChatBubbleIcon />
+          {post.commentCount > 0 && <span className="text-sm font-medium">{post.commentCount}</span>}
+        </button>
         <SaveButton
           postId={post.id}
           isSaved={post.isSaved}
