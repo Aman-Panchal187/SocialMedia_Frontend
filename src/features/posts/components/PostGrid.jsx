@@ -1,19 +1,17 @@
 import { useState } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import Skeleton from 'react-loading-skeleton'
-import { postsApi } from '../../../api/postsApi'
 import InfiniteScrollSentinel from '../../../components/common/InfiniteScrollSentinel'
 import PostDetailModal from './PostDetailModal'
 
-export default function PostGrid({ username }) {
+export default function PostGrid({ queryKey, queryFn, emptyMessage = 'No posts yet' }) {
   const [activePostId, setActivePostId] = useState(null)
 
   const gridQuery = useInfiniteQuery({
-    queryKey: ['userPosts', username],
-    queryFn: ({ pageParam }) => postsApi.getUserPosts(username, { cursor: pageParam, limit: 20 }),
+    queryKey,
+    queryFn: ({ pageParam }) => queryFn({ cursor: pageParam, limit: 20 }),
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.data.nextCursor ?? undefined,
-    enabled: Boolean(username),
   })
 
   const posts = gridQuery.data?.pages.flatMap((page) => page.data.items) ?? []
@@ -29,7 +27,7 @@ export default function PostGrid({ username }) {
   }
 
   if (posts.length === 0) {
-    return <p className="py-10 text-center text-sm text-gray-500">No posts yet</p>
+    return <p className="py-10 text-center text-sm text-gray-500">{emptyMessage}</p>
   }
 
   return (

@@ -20,6 +20,8 @@ export const postsApi = {
     axiosInstance
       .get(`/posts/user/${username}`, { params: { cursor, limit } })
       .then((r) => r.data),
+  getSavedPosts: ({ cursor, limit = 20 } = {}) =>
+    axiosInstance.get('/posts/saved', { params: { cursor, limit } }).then((r) => r.data),
   likePost: (postId) => axiosInstance.post(`/posts/${postId}/like`).then((r) => r.data),
   unlikePost: (postId) => axiosInstance.delete(`/posts/${postId}/like`).then((r) => r.data),
   savePost: (postId) => axiosInstance.post(`/posts/${postId}/save`).then((r) => r.data),

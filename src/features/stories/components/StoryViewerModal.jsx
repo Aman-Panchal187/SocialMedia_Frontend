@@ -10,7 +10,7 @@ import StoryViewersListModal from './StoryViewersListModal'
 
 const REACTION_EMOJIS = ['❤️', '😂', '😮', '😢', '🔥', '👏']
 
-export default function StoryViewerModal({ rings, initialAuthorIndex, isOpen, onClose }) {
+export default function StoryViewerModal({ rings, initialAuthorIndex, initialStoryIndex, isOpen, onClose }) {
   const currentUser = useAuthStore((state) => state.user)
   const [replyText, setReplyText] = useState('')
   const [isViewersListOpen, setIsViewersListOpen] = useState(false)
@@ -26,6 +26,7 @@ export default function StoryViewerModal({ rings, initialAuthorIndex, isOpen, on
     pause,
     resume,
     react,
+    reactedEmoji,
     reply,
     replyError,
     isReplying,
@@ -35,6 +36,8 @@ export default function StoryViewerModal({ rings, initialAuthorIndex, isOpen, on
   } = useStoryViewer({
     rings,
     initialAuthorIndex: initialAuthorIndex ?? 0,
+    initialStoryIndex: initialStoryIndex ?? 0,
+    isOpen,
     onClose,
   })
 
@@ -178,8 +181,12 @@ export default function StoryViewerModal({ rings, initialAuthorIndex, isOpen, on
                     key={emoji}
                     type="button"
                     onClick={() => react(emoji)}
-                    className="text-xl"
+                    className={clsx(
+                      'rounded-full text-xl transition-transform',
+                      reactedEmoji === emoji ? 'scale-125' : 'opacity-80 hover:opacity-100'
+                    )}
                     aria-label={`React with ${emoji}`}
+                    aria-pressed={reactedEmoji === emoji}
                   >
                     {emoji}
                   </button>

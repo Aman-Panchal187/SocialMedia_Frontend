@@ -30,12 +30,13 @@ export default function StoryViewersListModal({ storyId, isOpen, onClose }) {
         )}
 
         <div className="flex flex-col gap-3">
-          {viewers.map((viewer) => (
-            <div key={viewer.id} className="flex items-center gap-3">
-              <Avatar src={viewer.avatarUrl} alt={viewer.username} size="sm" />
-              <span className="flex-1 text-sm font-medium">{viewer.username}</span>
+          {viewers.map((item) => (
+            <div key={item.viewer?.id} className="flex items-center gap-3">
+              <Avatar src={item.viewer?.avatarUrl} alt={item.viewer?.username} size="sm" />
+              <span className="flex-1 text-sm font-medium">{item.viewer?.username}</span>
+              {item.reactionEmoji && <span className="text-base">{item.reactionEmoji}</span>}
               <span className="text-xs text-gray-400">
-                {formatDistanceToNowStrict(new Date(viewer.viewedAt))} ago
+                {formatDistanceToNowStrict(new Date(item.viewedAt))} ago
               </span>
             </div>
           ))}

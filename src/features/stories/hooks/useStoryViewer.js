@@ -6,12 +6,25 @@ import { STORY_FEED_QUERY_KEY, useMarkStoryViewedInCache } from './useStoryFeed'
 
 const IMAGE_DURATION_MS = 5000
 
-export function useStoryViewer({ rings, initialAuthorIndex = 0, onClose }) {
+export function useStoryViewer({ rings, initialAuthorIndex = 0, initialStoryIndex = 0, isOpen, onClose }) {
   const [authorIndex, setAuthorIndex] = useState(initialAuthorIndex)
-  const [storyIndex, setStoryIndex] = useState(0)
+  const [storyIndex, setStoryIndex] = useState(initialStoryIndex)
   const [isPaused, setIsPaused] = useState(false)
   const [progress, setProgress] = useState(0)
   const [replyError, setReplyError] = useState(null)
+  const [reactedEmoji, setReactedEmoji] = useState(null)
+
+  // The modal component instance persists across opens (it just renders null
+  // while closed), so authorIndex's useState initial value only applies on the
+  // very first open ever — without this, reopening with a different
+  // initialAuthorIndex leaves the viewer showing whichever story it was left
+  // on last time, which looks like "the wrong person's story."
+  useEffect(() => {
+    if (!isOpen) return
+    setAuthorIndex(initialAuthorIndex)
+    setStoryIndex(initialStoryIndex)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialAuthorIndex, initialStoryIndex])
 
   const viewedStoryIds = useRef(new Set())
   const rafRef = useRef(null)
@@ -31,6 +44,11 @@ export function useStoryViewer({ rings, initialAuthorIndex = 0, onClose }) {
 
   const reactMutation = useMutation({
     mutationFn: ({ storyId, emoji }) => storiesApi.reactToStory(storyId, emoji),
+    onSuccess: (_data, { emoji }) => {
+      setReactedEmoji(emoji)
+      toast.success(`Reacted ${emoji}`)
+    },
+    onError: () => toast.error('Could not send reaction'),
   })
 
   const replyMutation = useMutation({
@@ -81,6 +99,10 @@ export function useStoryViewer({ rings, initialAuthorIndex = 0, onClose }) {
     viewMutation.mutate(currentStory.id)
     markViewedInCache(currentStory.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStory?.id])
+
+  useEffect(() => {
+    setReactedEmoji(null)
   }, [currentStory?.id])
 
   useEffect(() => {
@@ -137,6 +159,14 @@ export function useStoryViewer({ rings, initialAuthorIndex = 0, onClose }) {
   }, [currentStory?.mediaType])
 
   const resume = useCallback(() => {
+    // If the user spent longer paused (e.g. typing a reply) than the story's
+    // remaining display time, resuming would otherwise instantly complete the
+    // progress bar and auto-advance — which looks like the story slamming shut
+    // right as you hit Send. Guarantee at least a moment of display time back.
+    const MIN_REMAINING_MS = 500
+    if (pausedElapsedRef.current > durationRef.current - MIN_REMAINING_MS) {
+      pausedElapsedRef.current = Math.max(0, durationRef.current - MIN_REMAINING_MS)
+    }
     setIsPaused(false)
   }, [])
 
@@ -172,7 +202,7 @@ export function useStoryViewer({ rings, initialAuthorIndex = 0, onClose }) {
         { storyId: currentStory.id, content },
         {
           onSuccess: () => {
-            toast.success('Reply sent')
+            toast.success('Message sent')
           },
           onError: (error) => {
             if (error?.response?.status === 403) {
@@ -207,6 +237,7 @@ export function useStoryViewer({ rings, initialAuthorIndex = 0, onClose }) {
       pause,
       resume,
       react,
+      reactedEmoji,
       reply,
       replyError,
       isReplying: replyMutation.isPending,
@@ -226,6 +257,7 @@ export function useStoryViewer({ rings, initialAuthorIndex = 0, onClose }) {
       pause,
       resume,
       react,
+      reactedEmoji,
       reply,
       replyError,
       replyMutation.isPending,

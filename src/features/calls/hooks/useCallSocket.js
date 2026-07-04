@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import { useQueryClient } from '@tanstack/react-query'
 import { useSocket } from '../../../context/SocketContext'
+import { CALL_HISTORY_QUERY_KEY } from './useCallHistory'
 
 const RTC_CONFIG = {
   iceServers: [
@@ -19,6 +21,7 @@ const INITIAL_STATE = {
 
 export function useCallSocket() {
   const { socket } = useSocket()
+  const queryClient = useQueryClient()
   const [state, setState] = useState(INITIAL_STATE)
   const [localStream, setLocalStream] = useState(null)
   const [remoteStream, setRemoteStream] = useState(null)
@@ -50,7 +53,11 @@ export function useCallSocket() {
     teardownMedia()
     callIdRef.current = null
     setState(INITIAL_STATE)
-  }, [teardownMedia])
+    // Every call-ending path (hangUp, reject, cancel, timeout, busy, error, the
+    // other party ending it) converges here, and each one persists a call-history
+    // row server-side — refetch so the Calls page reflects it without a manual reload.
+    queryClient.invalidateQueries({ queryKey: CALL_HISTORY_QUERY_KEY })
+  }, [teardownMedia, queryClient])
 
   const createPeerConnection = useCallback(
     (callId) => {

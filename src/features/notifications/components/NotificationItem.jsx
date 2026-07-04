@@ -112,6 +112,32 @@ export default function NotificationItem({ notification, onOpenPost, onMarkRead 
     )
   }
 
+  // A reaction is about the story itself, so it should open that story — a
+  // reply, on the other hand, is an actual chat message, so it belongs in the DM.
+  if (type === 'story_reaction') {
+    return (
+      <Link
+        to={`/?story=${entityId}`}
+        onClick={() => !isRead && onMarkRead(notification.id)}
+        className={rowClassName}
+      >
+        {avatarAndText}
+      </Link>
+    )
+  }
+
+  if (type === 'story_reply') {
+    return (
+      <Link
+        to={`/messages/${actor?.username}`}
+        onClick={() => !isRead && onMarkRead(notification.id)}
+        className={rowClassName}
+      >
+        {avatarAndText}
+      </Link>
+    )
+  }
+
   return (
     <button type="button" onClick={handleClick} className={rowClassName}>
       {avatarAndText}
