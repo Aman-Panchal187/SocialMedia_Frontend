@@ -137,7 +137,12 @@ export default function ActiveCallOverlay() {
             autoPlay
             playsInline
             muted
-            className="absolute bottom-4 right-4 h-20 w-16 rounded-lg border border-white/30 object-cover shadow-popover sm:h-32 sm:w-24"
+            // Mirrored like every other video call app (WhatsApp, Instagram,
+            // FaceTime, etc.) — people expect to see themselves the way a
+            // mirror shows them, not the way the camera actually sees them.
+            // Only the local self-view gets this; the remote peer's video
+            // must stay unmirrored, since that's genuinely how they look.
+            className="absolute bottom-4 right-4 h-20 w-16 -scale-x-100 rounded-lg border border-white/30 object-cover shadow-popover sm:h-32 sm:w-24"
           />
           {phase === 'connecting' && (
             <p className="absolute left-1/2 top-4 -translate-x-1/2 text-sm text-white/80">Connecting…</p>
