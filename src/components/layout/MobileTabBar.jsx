@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import Avatar from '../common/Avatar'
-import { BellIcon, ChatBubbleIcon, HomeIcon, PlusSquareIcon, SearchIcon } from '../common/icons'
+import { BellIcon, ChatBubbleIcon, HomeIcon, PhoneIcon, PlusSquareIcon, SearchIcon } from '../common/icons'
 import { useAuthStore } from '../../app/store'
 import { useUnreadCount } from '../../features/chat/hooks/useConversations'
 import { useUnreadCount as useUnreadNotificationCount } from '../../features/notifications/hooks/useNotifications'
@@ -16,6 +16,7 @@ export default function MobileTabBar({ onCreateClick }) {
 
   const isSearchActive = location.pathname === '/search'
   const isNotificationsActive = location.pathname === '/notifications'
+  const isCallsActive = location.pathname === '/calls'
   const isMessagesActive = location.pathname.startsWith('/messages')
   const isProfileActive = location.pathname === `/${user.username}`
   const tabClass =
@@ -49,6 +50,13 @@ export default function MobileTabBar({ onCreateClick }) {
             {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
           </span>
         )}
+      </Link>
+      <Link
+        to="/calls"
+        aria-label="Calls"
+        className={`${tabClass} ${isCallsActive ? 'text-brand' : ''}`}
+      >
+        <PhoneIcon className="h-6 w-6" />
       </Link>
       <Link to="/messages" aria-label="Messages" className={`relative ${tabClass}`}>
         <ChatBubbleIcon className="h-6 w-6" filled={isMessagesActive} />
