@@ -1,17 +1,21 @@
 import { Link, useLocation } from 'react-router-dom'
 import Avatar from '../common/Avatar'
-import { ChatBubbleIcon, HomeIcon, PlusSquareIcon } from '../common/icons'
+import { BellIcon, ChatBubbleIcon, HomeIcon, PlusSquareIcon, SearchIcon } from '../common/icons'
 import { useAuthStore } from '../../app/store'
 import { useUnreadCount } from '../../features/chat/hooks/useConversations'
+import { useUnreadCount as useUnreadNotificationCount } from '../../features/notifications/hooks/useNotifications'
 
 export default function MobileTabBar({ onCreateClick }) {
   const user = useAuthStore((state) => state.user)
   const unreadCount = useUnreadCount().data ?? 0
+  const unreadNotificationCount = useUnreadNotificationCount().data ?? 0
   const location = useLocation()
   const isFeedActive = location.pathname === '/'
 
   if (!user) return null
 
+  const isSearchActive = location.pathname === '/search'
+  const isNotificationsActive = location.pathname === '/notifications'
   const isMessagesActive = location.pathname.startsWith('/messages')
   const isProfileActive = location.pathname === `/${user.username}`
   const tabClass =
@@ -22,11 +26,30 @@ export default function MobileTabBar({ onCreateClick }) {
       className="fixed bottom-0 left-0 z-40 flex h-14 w-full items-center justify-around border-t border-gray-200 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md dark:border-gray-800 dark:bg-black/80 sm:hidden"
     >
       <Link to="/" aria-label="Feed" className={tabClass}>
-        <HomeIcon filled={isFeedActive} />
+        <HomeIcon filled={isFeedActive} className="h-6 w-6" />
+      </Link>
+      <Link
+        to="/search"
+        aria-label="Search"
+        className={`${tabClass} ${isSearchActive ? 'text-brand' : ''}`}
+      >
+        <SearchIcon className="h-6 w-6" />
       </Link>
       <button type="button" onClick={onCreateClick} aria-label="Create post" className={tabClass}>
-        <PlusSquareIcon />
+        <PlusSquareIcon className="h-6 w-6" />
       </button>
+      <Link
+        to="/notifications"
+        aria-label="Notifications"
+        className={`relative ${tabClass} ${isNotificationsActive ? 'text-brand' : ''}`}
+      >
+        <BellIcon className="h-6 w-6" />
+        {unreadNotificationCount > 0 && (
+          <span className="absolute right-0 top-0 flex h-4 min-w-[1rem] animate-scale-in items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold text-white motion-reduce:animate-none">
+            {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+          </span>
+        )}
+      </Link>
       <Link to="/messages" aria-label="Messages" className={`relative ${tabClass}`}>
         <ChatBubbleIcon className="h-6 w-6" filled={isMessagesActive} />
         {unreadCount > 0 && (

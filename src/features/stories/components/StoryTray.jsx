@@ -80,16 +80,28 @@ export default function StoryTray() {
 
   const handleOwnPointerUp = () => {
     clearTimeout(pressTimerRef.current)
+  }
+
+  const handleOwnPointerLeave = () => {
+    clearTimeout(pressTimerRef.current)
+  }
+
+  // The short-tap action fires from onClick rather than onPointerUp — onClick
+  // is the browser's synthesized tap event and fires reliably across mouse,
+  // touch, and assistive tech, whereas relying on onPointerUp alone was
+  // fragile on mobile: this control sits inside a horizontally-scrollable row
+  // with no touch-action constraint, so a tap with even a slight amount of
+  // finger movement gets reinterpreted as a scroll gesture and the pointerup
+  // handler's action never fires. Every other ring already uses a real
+  // <button onClick>, which doesn't have this problem — this just brings the
+  // own-story control in line with that.
+  const handleOwnActivate = () => {
     if (longPressTriggeredRef.current) return
     if (hasOwnStory) {
       openOwnViewer(0)
     } else {
       setIsCreateOpen(true)
     }
-  }
-
-  const handleOwnPointerLeave = () => {
-    clearTimeout(pressTimerRef.current)
   }
 
   if (isLoading) {
@@ -115,17 +127,14 @@ export default function StoryTray() {
           onPointerDown={handleOwnPointerDown}
           onPointerUp={handleOwnPointerUp}
           onPointerLeave={handleOwnPointerLeave}
+          onClick={handleOwnActivate}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault()
-              if (hasOwnStory) {
-                openOwnViewer(0)
-              } else {
-                setIsCreateOpen(true)
-              }
+              handleOwnActivate()
             }
           }}
-          className="flex shrink-0 cursor-pointer select-none flex-col items-center gap-1 rounded-xl transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 motion-reduce:transition-none motion-reduce:active:scale-100"
+          className="flex shrink-0 cursor-pointer select-none touch-manipulation flex-col items-center gap-1 rounded-xl transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 motion-reduce:transition-none motion-reduce:active:scale-100"
         >
           <div className="relative">
             {/* Always wrap in the same two-layer ring structure regardless of
@@ -167,7 +176,7 @@ export default function StoryTray() {
             key={ring.author.id}
             type="button"
             onClick={() => setActiveAuthorIndex(index)}
-            className="flex shrink-0 flex-col items-center gap-1 rounded-xl transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 motion-reduce:transition-none motion-reduce:active:scale-100"
+            className="flex shrink-0 touch-manipulation flex-col items-center gap-1 rounded-xl transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 motion-reduce:transition-none motion-reduce:active:scale-100"
           >
             <div
               className={clsx(

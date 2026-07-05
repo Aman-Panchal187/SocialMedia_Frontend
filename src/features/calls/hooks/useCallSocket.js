@@ -8,6 +8,30 @@ const RTC_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
+    // STUN alone only works when both peers can find a direct route through
+    // their NATs — common when they're on the same network, but frequently
+    // impossible across different ISPs/networks (symmetric NAT, restrictive
+    // firewalls), which is exactly when calls between distant users were
+    // failing. A TURN server relays the media when no direct route exists.
+    // Open Relay Project's free public TURN servers — fine for a hobby
+    // project, but shared/rate-limited; a paid TURN provider (Twilio,
+    // Metered, Xirsys) or a self-hosted coturn instance is worth it if this
+    // needs to be reliable at real scale.
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
   ],
 }
 

@@ -99,6 +99,23 @@ export function BellIcon({ className = 'h-6 w-6' }) {
   )
 }
 
+export function SearchIcon({ className = 'h-6 w-6' }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="7" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  )
+}
+
 export function HeartIcon({ filled = false, className = 'h-6 w-6' }) {
   return (
     <svg

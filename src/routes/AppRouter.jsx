@@ -18,6 +18,7 @@ const ChatListPage = lazy(() => import('../features/chat/pages/ChatListPage'))
 const ChatConversationPage = lazy(() => import('../features/chat/pages/ChatConversationPage'))
 const CallHistoryPage = lazy(() => import('../features/calls/pages/CallHistoryPage'))
 const SearchPage = lazy(() => import('../features/search/pages/SearchPage'))
+const NotificationsPage = lazy(() => import('../features/notifications/pages/NotificationsPage'))
 
 export default function AppRouter() {
   return (
@@ -40,6 +41,7 @@ export default function AppRouter() {
               <Route path="/messages/:username" element={<ChatConversationPage />} />
               <Route path="/calls" element={<CallHistoryPage />} />
               <Route path="/search" element={<SearchPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/:username" element={<ProfilePage />} />
             </Route>
           </Route>
