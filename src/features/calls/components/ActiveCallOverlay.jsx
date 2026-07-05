@@ -43,6 +43,19 @@ export default function ActiveCallOverlay() {
   const isVisible = phase === 'connecting' || phase === 'active'
   const isVideoCall = callType === 'video'
 
+  // Assigning srcObject alone relies on the element's `autoplay` attribute to
+  // start it — but that assignment happens asynchronously, well after the
+  // WebRTC negotiation completes and long outside the "Accept"/"Call" click's
+  // original user-gesture window. Browsers commonly honor autoplay for the
+  // *video* (silent) but block the *unmuted audio* track without an explicit
+  // play() call, which is exactly "video works, no sound". play() is called
+  // imperatively (and retried) everywhere srcObject is assigned, and a
+  // rejection is swallowed since the element still recovers once the browser
+  // allows it (e.g. after any click on the page).
+  const playSafely = (node) => {
+    node?.play().catch(() => {})
+  }
+
   // This component stays mounted the whole call (it just returns null when
   // not visible), so the stream can be assigned to state while phase is still
   // 'ringing-*' — before the <video>/<audio> elements exist in the DOM. A
@@ -53,7 +66,10 @@ export default function ActiveCallOverlay() {
   const attachRemoteVideo = useCallback(
     (node) => {
       remoteVideoRef.current = node
-      if (node) node.srcObject = remoteStream || null
+      if (node) {
+        node.srcObject = remoteStream || null
+        playSafely(node)
+      }
     },
     [remoteStream]
   )
@@ -61,7 +77,10 @@ export default function ActiveCallOverlay() {
   const attachLocalVideo = useCallback(
     (node) => {
       localVideoRef.current = node
-      if (node) node.srcObject = localStream || null
+      if (node) {
+        node.srcObject = localStream || null
+        playSafely(node)
+      }
     },
     [localStream]
   )
@@ -69,19 +88,57 @@ export default function ActiveCallOverlay() {
   const attachRemoteAudio = useCallback(
     (node) => {
       remoteAudioRef.current = node
-      if (node) node.srcObject = remoteStream || null
+      if (node) {
+        node.srcObject = remoteStream || null
+        playSafely(node)
+      }
     },
     [remoteStream]
   )
 
   useEffect(() => {
-    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream || null
-    if (remoteAudioRef.current) remoteAudioRef.current.srcObject = remoteStream || null
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = remoteStream || null
+      playSafely(remoteVideoRef.current)
+    }
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.srcObject = remoteStream || null
+      playSafely(remoteAudioRef.current)
+    }
   }, [remoteStream])
 
   useEffect(() => {
-    if (localVideoRef.current) localVideoRef.current.srcObject = localStream || null
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = localStream || null
+      playSafely(localVideoRef.current)
+    }
   }, [localStream])
+
+  // A fresh MediaStream is only created once (in useCallSocket's pc.ontrack,
+  // the first time a remote track arrives) and every later track (e.g. audio
+  // arriving in a separate ontrack event shortly after video) is added to
+  // that same object via addTrack — which doesn't change the object
+  // reference, so the effects above (keyed on the remoteStream value) don't
+  // re-run for it. The stream's own 'addtrack' event fires exactly when that
+  // happens, so re-attempt play() right then rather than guessing at timing.
+  useEffect(() => {
+    if (!remoteStream) return undefined
+    const handleAddTrack = () => {
+      playSafely(remoteVideoRef.current)
+      playSafely(remoteAudioRef.current)
+    }
+    remoteStream.addEventListener('addtrack', handleAddTrack)
+    return () => remoteStream.removeEventListener('addtrack', handleAddTrack)
+  }, [remoteStream])
+
+  // Belt-and-suspenders: also retry on the 'active' transition, in case the
+  // browser's autoplay block was the actual cause rather than track timing.
+  useEffect(() => {
+    if (phase !== 'active') return
+    playSafely(remoteVideoRef.current)
+    playSafely(remoteAudioRef.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase])
 
   useEffect(() => {
     setIsMuted(false)

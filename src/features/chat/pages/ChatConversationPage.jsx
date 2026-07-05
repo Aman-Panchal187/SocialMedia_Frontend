@@ -47,6 +47,36 @@ export default function ChatConversationPage() {
 
   const conversation = startConversationMutation.data?.data
   const conversationId = conversation?.id
+  const otherUserId = conversation?.otherUser?.id
+
+  // The conversation object comes from a one-time mutation result (starting
+  // the conversation), not a query — it never refetches, so the other user's
+  // online/last-seen status shown here would otherwise stay frozen at
+  // whatever it was the moment this page was opened. Track it separately and
+  // patch it from the same presence:update socket event the conversation
+  // list already reacts to.
+  const [otherUserPresence, setOtherUserPresence] = useState(null)
+
+  useEffect(() => {
+    if (conversation?.otherUser) {
+      setOtherUserPresence({
+        isOnline: conversation.otherUser.isOnline,
+        lastSeenAt: conversation.otherUser.lastSeenAt,
+      })
+    }
+  }, [conversation?.otherUser])
+
+  useEffect(() => {
+    if (!socket || !otherUserId) return undefined
+
+    const handlePresence = ({ userId, isOnline }) => {
+      if (userId !== otherUserId) return
+      setOtherUserPresence({ isOnline, lastSeenAt: isOnline ? null : new Date().toISOString() })
+    }
+
+    socket.on('presence:update', handlePresence)
+    return () => socket.off('presence:update', handlePresence)
+  }, [socket, otherUserId])
 
   const { emitTyping } = useChatSocket(conversationId)
   const messagesQuery = useMessages(conversationId)
@@ -121,6 +151,8 @@ export default function ChatConversationPage() {
   }
 
   const { otherUser } = conversation
+  const isOtherUserOnline = otherUserPresence?.isOnline ?? otherUser.isOnline
+  const otherUserLastSeenAt = otherUserPresence?.lastSeenAt ?? otherUser.lastSeenAt
 
   return (
     // AppLayout wraps every page in <main className="pb-16 pt-4 sm:pb-4">
@@ -137,7 +169,7 @@ export default function ChatConversationPage() {
         {backButton}
         <div className="relative shrink-0">
           <Avatar src={otherUser.avatarUrl} alt={otherUser.username} size="sm" />
-          <OnlineStatusDot isOnline={otherUser.isOnline} className="absolute bottom-0 right-0" />
+          <OnlineStatusDot isOnline={isOtherUserOnline} className="absolute bottom-0 right-0" />
         </div>
         <div className="min-w-0 flex-1">
           <Link
@@ -147,10 +179,10 @@ export default function ChatConversationPage() {
             {otherUser.username}
           </Link>
           <p className="text-xs text-gray-400">
-            {otherUser.isOnline
+            {isOtherUserOnline
               ? 'Online'
-              : otherUser.lastSeenAt
-                ? `Last seen ${formatDistanceToNowStrict(new Date(otherUser.lastSeenAt))} ago`
+              : otherUserLastSeenAt
+                ? `Last seen ${formatDistanceToNowStrict(new Date(otherUserLastSeenAt))} ago`
                 : 'Offline'}
           </p>
         </div>
