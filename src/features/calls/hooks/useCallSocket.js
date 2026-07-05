@@ -2,36 +2,18 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useSocket } from '../../../context/SocketContext'
+import { callsApi } from '../../../api/callsApi'
 import { CALL_HISTORY_QUERY_KEY } from './useCallHistory'
 
-const RTC_CONFIG = {
+// STUN-only fallback, used just until (or if ever) the backend's ICE config
+// can't be fetched. STUN alone only works when both peers can find a direct
+// route through their NATs — across different ISPs/mobile networks a TURN
+// relay is required, and that comes from the backend (GET /calls/ice-servers)
+// so credentials can be rotated server-side without redeploying the frontend.
+const FALLBACK_RTC_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    // STUN alone only works when both peers can find a direct route through
-    // their NATs — common when they're on the same network, but frequently
-    // impossible across different ISPs/networks (symmetric NAT, restrictive
-    // firewalls), which is exactly when calls between distant users were
-    // failing. A TURN server relays the media when no direct route exists.
-    // Open Relay Project's free public TURN servers — fine for a hobby
-    // project, but shared/rate-limited; a paid TURN provider (Twilio,
-    // Metered, Xirsys) or a self-hosted coturn instance is worth it if this
-    // needs to be reliable at real scale.
-    {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
   ],
 }
 
@@ -55,8 +37,28 @@ export function useCallSocket() {
   const remoteStreamRef = useRef(null)
   const pendingCandidatesRef = useRef([])
   const callIdRef = useRef(null)
+  const rtcConfigRef = useRef(FALLBACK_RTC_CONFIG)
   const stateRef = useRef(state)
   stateRef.current = state
+
+  // Fetched once per mount and kept in a ref (not state) — it's only read at
+  // RTCPeerConnection construction time, never rendered.
+  useEffect(() => {
+    let cancelled = false
+    callsApi
+      .getIceServers()
+      .then((res) => {
+        if (!cancelled && res.data?.iceServers?.length) {
+          rtcConfigRef.current = { iceServers: res.data.iceServers }
+        }
+      })
+      .catch(() => {
+        // Keep the STUN-only fallback; same-network calls still work.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const teardownMedia = useCallback(() => {
     if (pcRef.current) {
@@ -85,7 +87,7 @@ export function useCallSocket() {
 
   const createPeerConnection = useCallback(
     (callId) => {
-      const pc = new RTCPeerConnection(RTC_CONFIG)
+      const pc = new RTCPeerConnection(rtcConfigRef.current)
 
       pc.onicecandidate = (event) => {
         if (event.candidate) {
@@ -101,10 +103,23 @@ export function useCallSocket() {
         remoteStreamRef.current.addTrack(event.track)
       }
 
+      // Without this, an ICE failure (no viable route between the peers, e.g.
+      // TURN unavailable across restrictive NATs) left the call "active" —
+      // timer running, remote side black, no audio — with no indication
+      // anything was wrong. Surface it and end the call instead.
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === 'failed') {
+          toast.error('Could not establish a media connection — call ended')
+          const failedCallId = callIdRef.current
+          if (failedCallId) socket?.emit('call:end', { callId: failedCallId })
+          resetToIdle()
+        }
+      }
+
       pcRef.current = pc
       return pc
     },
-    [socket]
+    [socket, resetToIdle]
   )
 
   const flushPendingCandidates = useCallback(async () => {
