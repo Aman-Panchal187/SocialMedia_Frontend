@@ -17,6 +17,14 @@ const FALLBACK_RTC_CONFIG = {
   ],
 }
 
+// How long to give a connection attempt to reach 'connected'/'completed'
+// before proactively escalating to TURN, rather than waiting on the
+// browser's own ICE-failure detection — that can take 20-30+ seconds, which
+// would make every cross-network call feel badly broken before recovering.
+const ICE_CONNECT_TIMEOUT_MS = 5000
+
+const isStunUrl = (urls) => (Array.isArray(urls) ? urls : [urls]).every((u) => u?.startsWith('stun:'))
+
 const INITIAL_STATE = {
   phase: 'idle',
   callId: null,
@@ -44,6 +52,20 @@ export function useCallSocket() {
   const stateRef = useRef(state)
   stateRef.current = state
 
+  // Same-network calls should never need to touch the TURN relay at all — an
+  // RTCPeerConnection configured with TURN servers still prefers a direct
+  // route automatically when one works, but merely *listing* TURN servers
+  // means the browser contacts the relay to allocate a session during ICE
+  // gathering, whether or not it ends up used. These three refs implement a
+  // stricter policy: attempt the connection STUN-only first, and only add
+  // TURN (recreating the peer connection and redoing the offer/answer) if
+  // that attempt doesn't pan out.
+  const useTurnRef = useRef(false)
+  const isCallerRef = useRef(false)
+  const isRetryingRef = useRef(false)
+  const iceTimeoutRef = useRef(null)
+  const retryCallWithTurnRef = useRef(null)
+
   // Fetched once per mount and kept in a ref (not state) — it's only read at
   // RTCPeerConnection construction time, never rendered.
   useEffect(() => {
@@ -63,23 +85,41 @@ export function useCallSocket() {
     }
   }, [])
 
-  const teardownMedia = useCallback(() => {
+  const clearIceTimeout = useCallback(() => {
+    if (iceTimeoutRef.current) {
+      clearTimeout(iceTimeoutRef.current)
+      iceTimeoutRef.current = null
+    }
+  }, [])
+
+  // Closes just the RTCPeerConnection (and its remote stream) — used mid-call
+  // when escalating to TURN, where the local camera/mic stream must survive
+  // so the retry doesn't need to re-prompt for permissions.
+  const teardownPeerConnectionOnly = useCallback(() => {
+    clearIceTimeout()
     if (pcRef.current) {
       pcRef.current.close()
       pcRef.current = null
     }
+    remoteStreamRef.current = null
+    pendingCandidatesRef.current = []
+    setRemoteStream(null)
+  }, [clearIceTimeout])
+
+  const teardownMedia = useCallback(() => {
+    teardownPeerConnectionOnly()
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => track.stop())
       localStreamRef.current = null
     }
-    remoteStreamRef.current = null
-    pendingCandidatesRef.current = []
     setLocalStream(null)
-    setRemoteStream(null)
     setIsMuted(false)
     setIsCameraOff(false)
     setIsRemoteMuted(false)
-  }, [])
+    useTurnRef.current = false
+    isCallerRef.current = false
+    isRetryingRef.current = false
+  }, [teardownPeerConnectionOnly])
 
   const resetToIdle = useCallback(() => {
     teardownMedia()
@@ -91,9 +131,15 @@ export function useCallSocket() {
     queryClient.invalidateQueries({ queryKey: CALL_HISTORY_QUERY_KEY })
   }, [teardownMedia, queryClient])
 
+  const buildRtcConfig = useCallback(() => {
+    const allServers = rtcConfigRef.current.iceServers || []
+    if (useTurnRef.current) return { iceServers: allServers }
+    return { iceServers: allServers.filter((server) => isStunUrl(server.urls)) }
+  }, [])
+
   const createPeerConnection = useCallback(
     (callId) => {
-      const pc = new RTCPeerConnection(rtcConfigRef.current)
+      const pc = new RTCPeerConnection(buildRtcConfig())
 
       pc.onicecandidate = (event) => {
         if (event.candidate) {
@@ -109,24 +155,79 @@ export function useCallSocket() {
         remoteStreamRef.current.addTrack(event.track)
       }
 
-      // Without this, an ICE failure (no viable route between the peers, e.g.
-      // TURN unavailable across restrictive NATs) left the call "active" —
-      // timer running, remote side black, no audio — with no indication
-      // anything was wrong. Surface it and end the call instead.
+      // Escalates to TURN once (if not already using it), or ends the call
+      // with a clear error if this failure happened *with* TURN already
+      // in play — there's no further fallback to try at that point.
+      const handleConnectionStuck = () => {
+        if (isRetryingRef.current) return
+
+        if (!useTurnRef.current) {
+          isRetryingRef.current = true
+          if (isCallerRef.current) {
+            retryCallWithTurnRef.current?.()
+          } else {
+            socket?.emit('call:ice-retry-request', { callId: callIdRef.current })
+            teardownPeerConnectionOnly()
+          }
+          return
+        }
+
+        toast.error('Could not establish a media connection — call ended')
+        const failedCallId = callIdRef.current
+        if (failedCallId) socket?.emit('call:end', { callId: failedCallId })
+        resetToIdle()
+      }
+
       pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+          clearIceTimeout()
+          return
+        }
+        // Without this, an ICE failure (no viable route between the peers)
+        // left the call "active" — timer running, remote side black, no
+        // audio — with no indication anything was wrong.
         if (pc.iceConnectionState === 'failed') {
-          toast.error('Could not establish a media connection — call ended')
-          const failedCallId = callIdRef.current
-          if (failedCallId) socket?.emit('call:end', { callId: failedCallId })
-          resetToIdle()
+          clearIceTimeout()
+          handleConnectionStuck()
         }
       }
+
+      clearIceTimeout()
+      iceTimeoutRef.current = setTimeout(() => {
+        const currentState = pc.iceConnectionState
+        if (currentState !== 'connected' && currentState !== 'completed') {
+          handleConnectionStuck()
+        }
+      }, ICE_CONNECT_TIMEOUT_MS)
 
       pcRef.current = pc
       return pc
     },
-    [socket, resetToIdle]
+    [socket, resetToIdle, buildRtcConfig, clearIceTimeout, teardownPeerConnectionOnly]
   )
+
+  // The caller side of the "retry with TURN" escalation — recreates the peer
+  // connection (this time with TURN included), re-adds the still-open local
+  // tracks, and redoes the offer. Defined fresh each render and stashed in a
+  // ref (rather than wrapped in useCallback) purely to sidestep the circular
+  // dependency with createPeerConnection above, which needs to invoke it.
+  const retryCallWithTurn = async () => {
+    const callId = callIdRef.current
+    if (!callId || !localStreamRef.current || !socket) return
+    useTurnRef.current = true
+    teardownPeerConnectionOnly()
+    try {
+      const pc = createPeerConnection(callId)
+      localStreamRef.current.getTracks().forEach((track) => pc.addTrack(track, localStreamRef.current))
+      const offer = await pc.createOffer()
+      await pc.setLocalDescription(offer)
+      socket.emit('call:offer', { callId, sdp: pc.localDescription })
+    } catch {
+      toast.error('Could not establish a media connection — call ended')
+      resetToIdle()
+    }
+  }
+  retryCallWithTurnRef.current = retryCallWithTurn
 
   const flushPendingCandidates = useCallback(async () => {
     const pc = pcRef.current
@@ -145,6 +246,7 @@ export function useCallSocket() {
   const startCall = useCallback(
     (peer, callType) => {
       if (!socket) return
+      isCallerRef.current = true
       setState({
         phase: 'ringing-outgoing',
         callId: null,
@@ -250,6 +352,7 @@ export function useCallSocket() {
     if (!socket) return
 
     const handleIncoming = ({ callId, callType, caller }) => {
+      isCallerRef.current = false
       callIdRef.current = callId
       setState({
         phase: 'ringing-incoming',
@@ -286,14 +389,28 @@ export function useCallSocket() {
     }
 
     const handleOffer = async ({ callId, sdp }) => {
-      const pc = pcRef.current
-      if (!pc) return
+      let pc = pcRef.current
+      if (!pc) {
+        // No peer connection yet on this side — either this is the very
+        // first offer racing the local acceptCall() setup, or (far more
+        // likely mid-call) a prior STUN-only attempt failed and was torn
+        // down via teardownPeerConnectionOnly. Either way, a fresh offer
+        // arriving with nothing to receive it into means "start over here
+        // too" — and since the only reason the caller would ever resend an
+        // offer mid-call is the TURN escalation, mark this side as
+        // escalated as well before rebuilding.
+        if (!localStreamRef.current) return
+        useTurnRef.current = true
+        pc = createPeerConnection(callId)
+        localStreamRef.current.getTracks().forEach((track) => pc.addTrack(track, localStreamRef.current))
+      }
       await pc.setRemoteDescription(new RTCSessionDescription(sdp))
       await flushPendingCandidates()
       const answer = await pc.createAnswer()
       await pc.setLocalDescription(answer)
       socket.emit('call:answer', { callId, sdp: pc.localDescription })
       setState((prev) => ({ ...prev, phase: 'active', activeSince: Date.now() }))
+      isRetryingRef.current = false
     }
 
     const handleAnswer = async ({ sdp }) => {
@@ -302,6 +419,7 @@ export function useCallSocket() {
       await pc.setRemoteDescription(new RTCSessionDescription(sdp))
       await flushPendingCandidates()
       setState((prev) => ({ ...prev, phase: 'active', activeSince: Date.now() }))
+      isRetryingRef.current = false
     }
 
     const handleIceCandidate = ({ candidate }) => {
@@ -312,6 +430,13 @@ export function useCallSocket() {
       } else {
         pendingCandidatesRef.current.push(iceCandidate)
       }
+    }
+
+    const handleIceRetryRequest = ({ callId }) => {
+      if (callId !== callIdRef.current) return
+      if (!isCallerRef.current || useTurnRef.current) return
+      isRetryingRef.current = true
+      retryCallWithTurnRef.current?.()
     }
 
     const handleRejected = () => {
@@ -352,6 +477,7 @@ export function useCallSocket() {
     socket.on('call:offer', handleOffer)
     socket.on('call:answer', handleAnswer)
     socket.on('call:ice-candidate', handleIceCandidate)
+    socket.on('call:ice-retry-request', handleIceRetryRequest)
     socket.on('call:rejected', handleRejected)
     socket.on('call:cancelled', handleCancelled)
     socket.on('call:busy', handleBusy)
@@ -366,6 +492,7 @@ export function useCallSocket() {
       socket.off('call:offer', handleOffer)
       socket.off('call:answer', handleAnswer)
       socket.off('call:ice-candidate', handleIceCandidate)
+      socket.off('call:ice-retry-request', handleIceRetryRequest)
       socket.off('call:rejected', handleRejected)
       socket.off('call:cancelled', handleCancelled)
       socket.off('call:mute-status', handleMuteStatus)
