@@ -31,6 +31,9 @@ export function useCallSocket() {
   const [state, setState] = useState(INITIAL_STATE)
   const [localStream, setLocalStream] = useState(null)
   const [remoteStream, setRemoteStream] = useState(null)
+  const [isMuted, setIsMuted] = useState(false)
+  const [isCameraOff, setIsCameraOff] = useState(false)
+  const [isRemoteMuted, setIsRemoteMuted] = useState(false)
 
   const pcRef = useRef(null)
   const localStreamRef = useRef(null)
@@ -73,6 +76,9 @@ export function useCallSocket() {
     pendingCandidatesRef.current = []
     setLocalStream(null)
     setRemoteStream(null)
+    setIsMuted(false)
+    setIsCameraOff(false)
+    setIsRemoteMuted(false)
   }, [])
 
   const resetToIdle = useCallback(() => {
@@ -212,6 +218,34 @@ export function useCallSocket() {
     resetToIdle()
   }, [socket, resetToIdle])
 
+  // Muting only affects the local track locally (the other party's browser
+  // has no way to observe that) — the peer only finds out via this explicit
+  // signal, mirrored by the same event carrying their own status back.
+  const toggleMute = useCallback(() => {
+    if (!localStreamRef.current) return
+    setIsMuted((prev) => {
+      const next = !prev
+      localStreamRef.current.getAudioTracks().forEach((track) => {
+        track.enabled = !next
+      })
+      if (callIdRef.current) {
+        socket?.emit('call:mute-status', { callId: callIdRef.current, isMuted: next })
+      }
+      return next
+    })
+  }, [socket])
+
+  const toggleCamera = useCallback(() => {
+    if (!localStreamRef.current) return
+    setIsCameraOff((prev) => {
+      const next = !prev
+      localStreamRef.current.getVideoTracks().forEach((track) => {
+        track.enabled = !next
+      })
+      return next
+    })
+  }, [])
+
   useEffect(() => {
     if (!socket) return
 
@@ -308,6 +342,11 @@ export function useCallSocket() {
       resetToIdle()
     }
 
+    const handleMuteStatus = ({ callId, isMuted: remoteMuted }) => {
+      if (callId !== callIdRef.current) return
+      setIsRemoteMuted(remoteMuted)
+    }
+
     socket.on('call:incoming', handleIncoming)
     socket.on('call:accepted', handleAccepted)
     socket.on('call:offer', handleOffer)
@@ -319,6 +358,7 @@ export function useCallSocket() {
     socket.on('call:timeout', handleTimeout)
     socket.on('call:error', handleError)
     socket.on('call:end', handleEnd)
+    socket.on('call:mute-status', handleMuteStatus)
 
     return () => {
       socket.off('call:incoming', handleIncoming)
@@ -328,6 +368,7 @@ export function useCallSocket() {
       socket.off('call:ice-candidate', handleIceCandidate)
       socket.off('call:rejected', handleRejected)
       socket.off('call:cancelled', handleCancelled)
+      socket.off('call:mute-status', handleMuteStatus)
       socket.off('call:busy', handleBusy)
       socket.off('call:timeout', handleTimeout)
       socket.off('call:error', handleError)
@@ -342,10 +383,15 @@ export function useCallSocket() {
     activeSince: state.activeSince,
     localStream,
     remoteStream,
+    isMuted,
+    isCameraOff,
+    isRemoteMuted,
     startCall,
     acceptCall,
     rejectCall,
     cancelCall,
     hangUp,
+    toggleMute,
+    toggleCamera,
   }
 }

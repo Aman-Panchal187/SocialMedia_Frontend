@@ -30,9 +30,20 @@ function formatElapsed(totalSeconds) {
 }
 
 export default function ActiveCallOverlay() {
-  const { phase, callType, peerInfo, localStream, remoteStream, activeSince, hangUp } = useCall()
-  const [isMuted, setIsMuted] = useState(false)
-  const [isCameraOff, setIsCameraOff] = useState(false)
+  const {
+    phase,
+    callType,
+    peerInfo,
+    localStream,
+    remoteStream,
+    activeSince,
+    hangUp,
+    isMuted,
+    isCameraOff,
+    isRemoteMuted,
+    toggleMute,
+    toggleCamera,
+  } = useCall()
   const remoteVideoRef = useRef(null)
   const localVideoRef = useRef(null)
   const remoteAudioRef = useRef(null)
@@ -141,33 +152,10 @@ export default function ActiveCallOverlay() {
   }, [phase])
 
   useEffect(() => {
-    setIsMuted(false)
-    setIsCameraOff(false)
-  }, [localStream])
-
-  useEffect(() => {
     if (isVisible) hangUpButtonRef.current?.focus()
   }, [isVisible])
 
   if (!isVisible) return null
-
-  const toggleMute = () => {
-    if (!localStream) return
-    const nextMuted = !isMuted
-    localStream.getAudioTracks().forEach((track) => {
-      track.enabled = !nextMuted
-    })
-    setIsMuted(nextMuted)
-  }
-
-  const toggleCamera = () => {
-    if (!localStream) return
-    const nextCameraOff = !isCameraOff
-    localStream.getVideoTracks().forEach((track) => {
-      track.enabled = !nextCameraOff
-    })
-    setIsCameraOff(nextCameraOff)
-  }
 
   return createPortal(
     <AnimatePresence>
@@ -204,11 +192,30 @@ export default function ActiveCallOverlay() {
           {phase === 'connecting' && (
             <p className="absolute left-1/2 top-4 -translate-x-1/2 text-sm text-white/80">Connecting…</p>
           )}
+          {isRemoteMuted && phase === 'active' && (
+            <span
+              className="absolute bottom-4 left-4 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1.5 text-xs font-medium text-white"
+              aria-label={`${peerInfo?.username || 'Other person'} is muted`}
+            >
+              <MicIcon muted className="h-4 w-4" />
+              Muted
+            </span>
+          )}
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 text-white">
           <audio ref={attachRemoteAudio} autoPlay />
-          <Avatar src={peerInfo?.avatarUrl} alt={peerInfo?.username} size="xl" />
+          <div className="relative">
+            <Avatar src={peerInfo?.avatarUrl} alt={peerInfo?.username} size="xl" />
+            {isRemoteMuted && phase === 'active' && (
+              <span
+                className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-danger ring-2 ring-black"
+                aria-label={`${peerInfo?.username || 'Other person'} is muted`}
+              >
+                <MicIcon muted className="h-4 w-4 text-white" />
+              </span>
+            )}
+          </div>
           <p className="text-lg font-semibold">{peerInfo?.fullName || peerInfo?.username}</p>
           <p className="text-sm text-white/70">
             {phase === 'connecting' ? 'Connecting…' : formatElapsed(elapsed)}
